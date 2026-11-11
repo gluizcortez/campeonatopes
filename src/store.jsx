@@ -3,6 +3,9 @@ import { computeTournament } from './logic/tournament.js'
 
 const KEY = 'campeonato-pes:v1'
 
+// Limite de caracteres do nome do jogador: acima disso o nome quebra linha nos cards
+export const NAME_MAX = 14
+
 export function initialState() {
   return {
     version: 1,

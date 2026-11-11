@@ -185,7 +185,7 @@ h1, h2, h3 { margin: 0; }
 .ms-side.win .ms-score { color: var(--green); }
 .mc-warn { font-size: 12px; color: var(--amber); }
 .mc-note { font-size: 12px; color: var(--muted); }
-.match-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px; }
+.match-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 12px; }
 .match-section { display: flex; flex-direction: column; gap: 10px; }
 .section-title { font-family: 'Barlow Condensed', sans-serif; text-transform: uppercase; font-size: 18px; letter-spacing: 0.8px; color: var(--muted); }
 
@@ -199,7 +199,7 @@ h1, h2, h3 { margin: 0; }
 .groups-grid.g2 { grid-template-columns: repeat(2, 1fr); }
 .groups-full { display: grid; grid-template-columns: repeat(auto-fit, minmax(420px, 1fr)); gap: 18px; }
 .group-card { display: flex; flex-direction: column; gap: 14px; }
-.group-matches { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 10px; }
+.group-matches { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 10px; }
 .gtable { min-width: 0; overflow-x: auto; }
 .gtable-title { display: flex; align-items: center; gap: 8px; font-weight: 800; margin-bottom: 8px; font-family: 'Barlow Condensed', sans-serif; text-transform: uppercase; font-size: 18px; letter-spacing: 0.5px; }
 .group-badge { width: 26px; height: 26px; display: inline-grid; place-items: center; border-radius: 8px; background: var(--green); color: #04130a; font-weight: 800; font-size: 14px; font-family: 'Inter', sans-serif; }
@@ -235,7 +235,7 @@ h1, h2, h3 { margin: 0; }
 /* ---------- Mini rankings ---------- */
 .mini-rank { display: flex; flex-direction: column; gap: 6px; }
 .mr-row { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; padding: 8px 10px; border-radius: 10px; background: rgba(255, 255, 255, 0.03); border: 1px solid var(--line); font-size: 14px; }
-.mr-row .player-tag { flex: 1 1 120px; }
+.mr-row .player-tag { flex: 1 1 150px; }
 .mr-pos { font-weight: 800; width: 28px; color: var(--muted); }
 .mr-group { font-size: 12px; color: var(--muted); white-space: nowrap; }
 .mr-stat { font-size: 12px; color: var(--muted); white-space: nowrap; margin-left: auto; }
@@ -245,7 +245,7 @@ h1, h2, h3 { margin: 0; }
 .duck { font-size: 18px; }
 
 /* ---------- Bracket ---------- */
-.bracket { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 16px; }
+.bracket { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 16px; }
 .b-col { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
 .b-col-title { font-family: 'Barlow Condensed', sans-serif; text-transform: uppercase; letter-spacing: 1px; font-weight: 800; color: var(--muted); font-size: 15px; }
 .b-col-items { display: flex; flex-direction: column; justify-content: space-around; gap: 12px; flex: 1; }
@@ -288,11 +288,12 @@ h1, h2, h3 { margin: 0; }
 .pato-winner { display: flex; flex-direction: column; align-items: center; gap: 10px; border-color: rgba(250, 204, 21, 0.4); }
 
 /* ---------- Players ---------- */
-.players-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 14px; }
+.players-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 14px; }
 .player-card { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 14px; display: flex; flex-direction: column; gap: 12px; position: relative; overflow: hidden; }
 .player-card::before { content: ''; position: absolute; inset: 0 0 auto 0; height: 3px; background: var(--team, var(--green)); }
 .pc-head { display: flex; align-items: center; gap: 12px; }
-.pc-info { flex: 1; min-width: 0; }
+.pc-info { flex: 1; min-width: 0; display: flex; flex-direction: column; align-items: flex-start; gap: 3px; }
+.pc-info .status { margin-top: 3px; }
 .flag-btn { background: none; border: 0; padding: 0; }
 .inline-input { background: transparent; border: 1px solid transparent; border-radius: 8px; padding: 2px 6px; margin-left: -6px; font-weight: 800; font-size: 17px; width: 100%; }
 .inline-input:hover, .inline-input:focus { border-color: var(--line-2); background: rgba(255, 255, 255, 0.04); outline: none; }
@@ -362,7 +363,7 @@ select option { background: var(--card-solid); }
 .team-opt.selected { border-color: var(--green); background: var(--green-soft); }
 .team-opt.taken { opacity: 0.35; }
 .team-opt small { color: var(--muted); font-weight: 500; font-size: 11px; }
-.seed-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 10px; }
+.seed-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 10px; }
 .seed-opt { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 12px; border-radius: 12px; border: 1px solid var(--line); background: var(--card-2); text-align: left; transition: all 0.15s; }
 .seed-opt.selected { border-color: var(--gold); background: var(--gold-soft); }
 .seed-badge { font-size: 12px; font-weight: 800; color: var(--gold); white-space: nowrap; }
@@ -422,9 +423,9 @@ select option { background: var(--card-solid); }
 /* ---------- Responsive ---------- */
 @media (max-width: 960px) {
   .groups-grid.g3 { grid-template-columns: 1fr 1fr; }
-  .groups-full { grid-template-columns: 1fr; }
 }
 @media (max-width: 1100px) {
+  .groups-full { grid-template-columns: 1fr; }
   .topbar-inner { flex-direction: column; align-items: stretch; gap: 8px; padding: 10px 12px 8px; }
   .tabs { justify-content: flex-start; margin: 0 -12px; padding: 0 12px; }
 }
@@ -535,7 +536,7 @@ select option { background: var(--card-solid); }
 .cafe-note { font-size: 12px; color: #e6b98a; background: rgba(180, 120, 70, 0.12); border: 1px dashed rgba(230, 185, 138, 0.35); border-radius: 8px; padding: 6px 10px; margin-bottom: 8px; }
 .zone-cafe td { opacity: 0.75; }
 
-.name-btn { background: none; border: 0; padding: 0; text-align: left; font-weight: 800; font-size: 17px; line-height: 1.2; overflow-wrap: anywhere; }
+.name-btn { background: none; border: 0; padding: 0; text-align: left; font-weight: 800; font-size: 17px; line-height: 1.2; overflow-wrap: break-word; max-width: 100%; }
 .name-btn .name-pen { font-size: 12px; opacity: 0; transition: opacity 0.15s; }
 .name-btn:hover .name-pen, .name-btn:focus .name-pen { opacity: 0.8; }
 @media (hover: none) { .name-btn .name-pen { opacity: 0.5; } }

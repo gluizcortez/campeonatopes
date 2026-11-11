@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { useStore } from './store.jsx'
+import { useStore, NAME_MAX } from './store.jsx'
 import { Card, Confirm, Empty, Flag, PlayerTag } from './components/common.jsx'
 import { MatchCard } from './components/Match.jsx'
 import { GroupTable, Legend, PatoRanking, RepescagemTable, Scorers, ThirdsTable, FormatInfo } from './components/Tables.jsx'
@@ -336,6 +336,7 @@ function NameEdit({ value, onSave, taken }) {
     <input
       className="inline-input"
       autoFocus
+      maxLength={NAME_MAX}
       value={draft}
       onChange={(e) => setDraft(e.target.value)}
       onBlur={done}
@@ -374,8 +375,8 @@ export function Players() {
                     {state.seeds.includes(p.id) ? ' · ★ Cabeça' : ''}
                     {t.cafe === p.id ? ' · ☕ Café com leite' : ''}
                   </div>
+                  <span className={`status s-${st.tone}`}>{st.label}</span>
                 </div>
-                <span className={`status s-${st.tone}`}>{st.label}</span>
               </div>
               <div className="pc-stats">
                 <div><b>{s.j}</b><span>J</span></div>

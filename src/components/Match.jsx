@@ -111,7 +111,7 @@ export function ResultModal({ match, onClose }) {
 
   const home = state.players.find((p) => p.id === match?.homeId)
   const away = state.players.find((p) => p.id === match?.awayId)
-  const needPens = match?.knockout && hg === ag
+  const needPens = match?.knockout && !match?.drawAllowed && hg === ag
   const pensInvalid = needPens && ph === pa
   const sorted = useMemo(() => state.players.slice().sort((a, b) => a.name.localeCompare(b.name)), [state.players])
   // Um jogador não pode estar em dois confrontos da mesma fase (exceto o triangular da repescagem).

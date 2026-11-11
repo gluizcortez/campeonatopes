@@ -292,15 +292,18 @@ export function computeTournament(state) {
   const pos = (gid, n) => (phase1Done ? realTables[gid]?.[n - 1]?.playerId || null : null)
 
   // ---------- Helper para jogos eliminatórios ----------
-  function ko({ id, stage, title, subtitle, home, away, homeLabel, awayLabel }) {
+  function ko({ id, stage, title, subtitle, home, away, homeLabel, awayLabel, draws = false }) {
     const ov = overrides[id]
     const homeId = ov?.homeId ?? (typeof home === 'function' ? home() : home) ?? null
     const awayId = ov?.awayId ?? (typeof away === 'function' ? away() : away) ?? null
     const m = {
       id, stage, title, subtitle, knockout: true, homeId, awayId, homeLabel, awayLabel,
       overridden: !!ov,
+      // no triangular da repescagem vale empate (conta ponto na tabela), sem pênaltis
+      drawAllowed: draws,
     }
     m.result = validResult(m, results)
+    if (draws && m.result) m.result = { ...m.result, ph: null, pa: null }
     m.staleResult = !!results[id] && !m.result
     outcomes[id] = winnerOf(m, m.result)
     matches.push(m)
@@ -327,6 +330,7 @@ export function computeTournament(state) {
         id: `R${i + 1}`, stage: 'repescagem', title: 'Repescagem', subtitle: `Triangular · Jogo ${i + 1}`,
         home: L(`K${h}`), away: L(`K${a}`),
         homeLabel: `Perdedor Jogo ${h}`, awayLabel: `Perdedor Jogo ${a}`,
+        draws: true,
       }),
     )
     const rpPlayers = [...new Set(rpMatches.flatMap((m) => [m.homeId, m.awayId]).filter(Boolean))]
@@ -508,7 +512,8 @@ export function playerStatus(t, id) {
     return { label: 'Eliminado', tone: 'out' }
   }
   // Ainda vivo?
-  const lostKO = t.matches.some((m) => m.knockout && m.stage !== 'pato' && m.stage !== 'second' && t.outcomes[m.id]?.loser === id)
+  // perder um jogo do triangular da repescagem não elimina: quem decide é a tabela (repLost)
+  const lostKO = t.matches.some((m) => m.knockout && !['pato', 'second', 'repescagem'].includes(m.stage) && t.outcomes[m.id]?.loser === id)
   const repLost = t.repescagem?.done && t.repescagem.winner !== id && t.repescagem.table.some((r) => r.playerId === id)
   if (lostKO || repLost) return { label: 'Eliminado', tone: 'out' }
   const lostSecond = t.matches.some((m) => m.stage === 'second' && t.outcomes[m.id]?.loser === id)

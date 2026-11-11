@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useStore, uid } from '../store.jsx'
+import { useStore, uid, NAME_MAX } from '../store.jsx'
 import { TEAMS, TEAM_BY_ID } from '../data/teams.js'
 import { FORMATS, GROUP_IDS, buildGroupMatches, defaultGroupMatchups } from '../logic/tournament.js'
 import { Flag, Modal, PlayerTag } from './common.jsx'
@@ -110,6 +110,7 @@ function StepPlayers() {
             <span className="pr-num">{i + 1}</span>
             <input
               value={p.name}
+              maxLength={NAME_MAX}
               placeholder={`Nome do jogador ${i + 1}`}
               onChange={(e) => set(p.id, { name: e.target.value })}
             />

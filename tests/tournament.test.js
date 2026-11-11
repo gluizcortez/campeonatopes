@@ -96,3 +96,34 @@ test('café com leite classificado abre vaga no outro grupo (7)', () => {
   assert.equal([...t.qualified].filter((id) => groups[1].playerIds.includes(id) && id !== cafe).length, 2)
   void f
 })
+
+test('repescagem: empate vale ponto e perder um jogo do triangular não elimina', async () => {
+  const { playerStatus } = await import('../src/logic/tournament.js')
+  const st = setup(9)
+  // fase de grupos e mata-mata: mandante sempre vence
+  for (;;) {
+    const t = computeTournament(st)
+    const m = t.ready.find((x) => x.stage === 'group' || x.stage === 'second')
+    if (!m) break
+    st.results[m.id] = { homeId: m.homeId, awayId: m.awayId, hg: 2, ag: 0 }
+  }
+  let t = computeTournament(st)
+  const R1 = t.matches.find((m) => m.id === 'R1')
+  assert.equal(R1.drawAllowed, true)
+  // perde o 1º jogo do triangular
+  st.results.R1 = { homeId: R1.homeId, awayId: R1.awayId, hg: 0, ag: 1 }
+  t = computeTournament(st)
+  assert.equal(playerStatus(t, R1.homeId).label, 'Repescagem')
+  // vence o 2º por 4 x 0; no 3º (entre os outros dois) o vencedor do R1 perde: 3 empatados em pontos, o saldo decide
+  const R2 = t.matches.find((m) => m.id === 'R2')
+  const loserHome = R2.homeId === R1.homeId
+  st.results.R2 = { homeId: R2.homeId, awayId: R2.awayId, hg: loserHome ? 4 : 0, ag: loserHome ? 0 : 4 }
+  t = computeTournament(st)
+  const R3 = t.matches.find((m) => m.id === 'R3')
+  const r1WinnerHome = R3.homeId === R1.awayId
+  st.results.R3 = { homeId: R3.homeId, awayId: R3.awayId, hg: r1WinnerHome ? 0 : 1, ag: r1WinnerHome ? 1 : 0, ph: 5, pa: 4 }
+  t = computeTournament(st)
+  assert.equal(t.matches.find((m) => m.id === 'R3').result.ph, null, 'pênaltis ignorados no triangular')
+  assert.equal(t.repescagem.winner, R1.homeId)
+  assert.equal(playerStatus(t, R1.homeId).label, 'Vivo')
+})
