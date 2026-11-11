@@ -51,6 +51,23 @@ export function StoreProvider({ children }) {
     }
   }, [state])
 
+  // Se o site estiver aberto em outra aba, mantém as duas sincronizadas
+  // (sem isso, a aba antiga sobrescreveria os resultados lançados na outra).
+  useEffect(() => {
+    const onStorage = (e) => {
+      if (e.key !== KEY || !e.newValue) return
+      try {
+        const data = JSON.parse(e.newValue)
+        if (data?.version === 1) {
+          first.current = true // não regravar o que acabou de chegar
+          setState({ ...initialState(), ...data })
+        }
+      } catch { /* ignora */ }
+    }
+    window.addEventListener('storage', onStorage)
+    return () => window.removeEventListener('storage', onStorage)
+  }, [])
+
   // update(fn): fn recebe uma cópia do estado e pode alterá-la diretamente
   const api = useMemo(() => ({
     update(fn) {

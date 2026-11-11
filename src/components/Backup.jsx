@@ -1,5 +1,6 @@
 import { useRef, useState } from 'react'
 import { useStore } from '../store.jsx'
+import { computeTournament } from '../logic/tournament.js'
 
 export function exportState(state) {
   const blob = new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' })
@@ -22,6 +23,8 @@ export function ImportButton({ label = '📂 Importar backup' }) {
     try {
       const data = JSON.parse(await file.text())
       if (data?.version !== 1 || !Array.isArray(data.players)) throw new Error('formato')
+      // garante que o arquivo abre sem quebrar o site antes de substituir os dados atuais
+      if (data.status === 'running') computeTournament({ results: {}, overrides: {}, groups: [], groupMatches: [], ...data })
       replace(data)
       setErr('')
     } catch {

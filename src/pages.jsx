@@ -305,20 +305,31 @@ export function PatoPage({ open }) {
   )
 }
 
-function NameEdit({ value, onSave }) {
+function NameEdit({ value, onSave, taken }) {
   const [editing, setEditing] = useState(false)
   const [draft, setDraft] = useState(value)
+  const [err, setErr] = useState('')
   const done = () => {
     const v = draft.trim()
-    if (v) onSave(v)
-    else setDraft(value)
+    // nome vazio ou repetido não é salvo (o nome também é usado como último critério de desempate)
+    if (v && taken.includes(v.toLowerCase())) {
+      setErr('Já existe um jogador com esse nome.')
+      setDraft(value)
+    } else {
+      if (v) onSave(v)
+      else setDraft(value)
+      setErr('')
+    }
     setEditing(false)
   }
   if (!editing) {
     return (
-      <button className="name-btn" onClick={() => { setDraft(value); setEditing(true) }} title="Editar nome">
-        <span>{value}</span> <span className="name-pen">✏️</span>
-      </button>
+      <>
+        <button className="name-btn" onClick={() => { setDraft(value); setEditing(true) }} title="Editar nome">
+          <span>{value}</span> <span className="name-pen">✏️</span>
+        </button>
+        {err && <div className="warn small" style={{ marginTop: 2 }}>{err}</div>}
+      </>
     )
   }
   return (
@@ -353,6 +364,7 @@ export function Players() {
                 <div className="pc-info">
                   <NameEdit
                     value={p.name}
+                    taken={state.players.filter((y) => y.id !== p.id).map((y) => y.name.trim().toLowerCase())}
                     onSave={(name) => update((x) => { x.players.find((y) => y.id === p.id).name = name })}
                   />
                   <div className="muted small">

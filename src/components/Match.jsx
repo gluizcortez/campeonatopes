@@ -125,6 +125,8 @@ export function ResultModal({ match, onClose }) {
     .filter((x) => x.other)
   const swapBlocked = swaps.filter((x) => x.other.result)
   const pname = (id) => state.players.find((p) => p.id === id)?.name
+  // Se um jogo ajustado desta fase já foi jogado, voltar ao automático deixaria a troca pela metade
+  const clearLocked = tournament?.matches.some((m) => m.stage === match?.stage && m.id !== match?.id && m.overridden && m.result)
 
   if (!match) return null
 
@@ -140,7 +142,8 @@ export function ResultModal({ match, onClose }) {
           .filter((x) => (x.side === 'home' ? hg : ag) > 0)
           .filter((x, i, arr) => arr.filter((y) => y.side === x.side).indexOf(x) < (x.side === 'home' ? hg : ag))
           .map((x) => ({ side: x.side, name: (x.name || '').trim(), ownGoal: !!x.ownGoal })),
-        playedAt: Date.now(),
+        // ao corrigir um placar, mantém o horário original (não muda a ordem dos últimos resultados)
+        playedAt: existing?.playedAt || Date.now(),
       }
     })
     onClose()
@@ -197,8 +200,13 @@ export function ResultModal({ match, onClose }) {
                 : `🔁 ${pname(x.newId)} sai de ${x.other.subtitle} e ${pname(x.oldId)} entra no lugar dele.`}
             </div>
           ))}
+          {match.overridden && clearLocked && (
+            <div className="muted small" style={{ marginTop: 8 }}>
+              Não dá para voltar ao automático: outro jogo ajustado desta fase já tem resultado.
+            </div>
+          )}
           <div className="row-end">
-            {match.overridden && <button className="btn ghost" onClick={clearOverride}>Voltar ao automático (fase inteira)</button>}
+            {match.overridden && !clearLocked && <button className="btn ghost" onClick={clearOverride}>Voltar ao automático (fase inteira)</button>}
             <button className="btn ghost" onClick={() => setEditing(false)}>Cancelar</button>
             <button className="btn primary" disabled={!ovHome || !ovAway || ovHome === ovAway || swapBlocked.length > 0} onClick={saveOverride}>Salvar confronto</button>
           </div>
