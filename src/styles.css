@@ -149,6 +149,8 @@ h1, h2, h3 { margin: 0; }
 
 /* ---------- Podium ---------- */
 .podium { display: grid; grid-template-columns: 1.4fr 1fr 1fr; gap: 14px; }
+.podium.n2 { grid-template-columns: 1.4fr 1fr; }
+.podium.n1 { grid-template-columns: 1fr; }
 .pod { border-radius: var(--radius); padding: 18px; display: flex; flex-direction: column; align-items: center; gap: 8px; text-align: center; border: 1px solid var(--line); background: var(--card); }
 .pod-icon { font-size: 40px; }
 .pod-label { font-family: 'Barlow Condensed', sans-serif; text-transform: uppercase; letter-spacing: 1px; font-weight: 800; font-size: 15px; color: var(--muted); }
@@ -434,7 +436,7 @@ select option { background: var(--card-solid); }
   .tab { padding: 7px 11px; font-size: 13px; }
   .content { padding: 14px 12px 50px; }
   .grid-2, .groups-grid.g3, .groups-grid.g2 { grid-template-columns: 1fr; }
-  .podium { grid-template-columns: 1fr; }
+  .podium, .podium.n2 { grid-template-columns: 1fr; }
   .format-grid { grid-template-columns: 1fr; }
   .player-row { flex-wrap: wrap; }
   .player-row input { flex: 1 1 calc(100% - 40px); }

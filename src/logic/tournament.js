@@ -455,6 +455,43 @@ export function computeTournament(state) {
   }
 }
 
+// ---------- Editar confronto ----------
+// Quem entra neste jogo vindo de outro jogo da mesma fase troca de lugar com quem sai daqui,
+// para ninguém ficar em dois jogos da fase (no triangular da repescagem não há troca).
+// Compara os jogadores que entram e saem, e não os lados: inverter o mando e trazer
+// alguém de outro jogo manda para lá quem realmente saiu.
+export function planOverride(matches, match, homeId, awayId) {
+  if (!match || match.stage === 'repescagem') return []
+  const before = [match.homeId, match.awayId]
+  const after = [homeId, awayId]
+  const entering = after.filter((id) => id && !before.includes(id))
+  const leaving = before.filter((id) => id && !after.includes(id))
+  const swaps = []
+  entering.forEach((newId, i) => {
+    const other = matches.find(
+      (m) => m.id !== match.id && m.stage === match.stage && (m.homeId === newId || m.awayId === newId),
+    )
+    if (other && leaving[i]) swaps.push({ newId, oldId: leaving[i], other })
+  })
+  return swaps
+}
+
+// Aplica o confronto ajustado e as trocas em `overrides` (objeto salvo no estado).
+// Parte de quem aparece hoje no outro jogo (e não do ajuste salvo, que pode ter um lado
+// ainda "automático", vazio, como o líder da repescagem antes do triangular acabar).
+export function applyOverride(overrides, match, homeId, awayId, swaps) {
+  overrides[match.id] = { homeId, awayId }
+  const next = {}
+  for (const { oldId, newId, other } of swaps) {
+    const cur = next[other.id] || { homeId: other.homeId, awayId: other.awayId }
+    next[other.id] = {
+      homeId: cur.homeId === newId ? oldId : cur.homeId,
+      awayId: cur.awayId === newId ? oldId : cur.awayId,
+    }
+  }
+  Object.assign(overrides, next)
+}
+
 // ---------- Artilharia ----------
 export function normalizeName(s) {
   return (s || '')

@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react'
 import { useStore } from '../store.jsx'
 import { Flag, Modal, PlayerTag, Stepper } from './common.jsx'
 import { TEAM_BY_ID } from '../data/teams.js'
-import { normalizeName } from '../logic/tournament.js'
+import { applyOverride, normalizeName, planOverride, winnerOf } from '../logic/tournament.js'
 
 const STAGE_ICON = { group: '🟢', second: '⚔️', quarter: '⚔️', repescagem: '🔁', semi: '🔥', final: '🏆', pato: '🦆' }
 
@@ -25,8 +25,8 @@ function Side({ id, label, score, pens, win, align }) {
 // Card compacto de partida, usado em listas
 export function MatchCard({ match, onOpen }) {
   const r = match.result
-  const { outcomes } = useStore().tournament
-  const w = outcomes?.[match.id]?.winner
+  // vencedor de qualquer jogo (inclusive da fase de grupos), para destacar o placar
+  const w = winnerOf(match, r)?.winner
   const ready = match.homeId && match.awayId
   const hasPens = r && r.hg === r.ag && r.ph != null
   return (
@@ -55,6 +55,8 @@ function suggestionsFor(state, teamId) {
   const names = new Map()
   for (const r of Object.values(state.results)) {
     for (const g of r.scorers || []) {
+      // gol contra é de um jogador do adversário: não entra nas sugestões deste time
+      if (g.ownGoal) continue
       const ownerId = g.side === 'home' ? r.homeId : r.awayId
       const owner = state.players.find((p) => p.id === ownerId)
       if (owner?.team === teamId && g.name?.trim()) names.set(normalizeName(g.name), g.name.trim())
@@ -116,13 +118,7 @@ export function ResultModal({ match, onClose }) {
   const sorted = useMemo(() => state.players.slice().sort((a, b) => a.name.localeCompare(b.name)), [state.players])
   // Um jogador não pode estar em dois confrontos da mesma fase (exceto o triangular da repescagem).
   // Se escolherem alguém que já está em outro jogo da fase, os dois jogos trocam de jogador.
-  const otherMatchOf = (id) => (match?.stage === 'repescagem' ? null : tournament?.matches.find(
-    (m) => m.id !== match?.id && m.stage === match?.stage && (m.homeId === id || m.awayId === id),
-  ))
-  const swaps = [[match?.homeId, ovHome], [match?.awayId, ovAway]]
-    .filter(([oldId, newId]) => newId && newId !== oldId && newId !== match?.homeId && newId !== match?.awayId)
-    .map(([oldId, newId]) => ({ oldId, newId, other: otherMatchOf(newId) }))
-    .filter((x) => x.other)
+  const swaps = planOverride(tournament?.matches || [], match, ovHome, ovAway)
   const swapBlocked = swaps.filter((x) => x.other.result)
   const pname = (id) => state.players.find((p) => p.id === id)?.name
   // Se um jogo ajustado desta fase já foi jogado, voltar ao automático deixaria a troca pela metade
@@ -155,16 +151,7 @@ export function ResultModal({ match, onClose }) {
   }
 
   const saveOverride = () => {
-    update((s) => {
-      s.overrides[match.id] = { homeId: ovHome, awayId: ovAway }
-      for (const { oldId, newId, other } of swaps) {
-        const cur = s.overrides[other.id] || { homeId: other.homeId, awayId: other.awayId }
-        s.overrides[other.id] = {
-          homeId: cur.homeId === newId ? oldId : cur.homeId,
-          awayId: cur.awayId === newId ? oldId : cur.awayId,
-        }
-      }
-    })
+    update((s) => { applyOverride(s.overrides, match, ovHome, ovAway, swaps) })
     onClose()
   }
   const clearOverride = () => {

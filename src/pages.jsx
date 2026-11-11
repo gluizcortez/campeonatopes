@@ -12,8 +12,10 @@ import { TEAM_BY_ID } from './data/teams.js'
 function Podium() {
   const { tournament: t } = useStore()
   if (!t.champion && !t.pato) return null
+  // o pato costuma sair antes da final: com menos de 3 cards, a grade se ajusta e não sobra espaço vazio
+  const count = [t.champion, t.vice, t.pato].filter(Boolean).length
   return (
-    <div className="podium">
+    <div className={`podium n${count}`}>
       {t.champion && (
         <div className="pod champion">
           <div className="pod-icon">🏆</div>
@@ -87,7 +89,7 @@ export function Home({ open, goTo }) {
         </Card>
       )}
 
-      <Card title="Últimos resultados" icon="✅" action={t.recent.length > 0 && <button className="link-btn" onClick={() => goTo('matches')}>Ver todas</button>}>
+      <Card title="Últimos resultados" icon="✅" action={t.recent.length > 0 && <button className="link-btn" onClick={() => goTo('matches', 'played')}>Ver todas</button>}>
         {t.recent.length ? (
           <div className="match-grid">{t.recent.slice(0, 4).map((m) => <MatchCard key={m.id} match={m} onOpen={open} />)}</div>
         ) : (
@@ -140,9 +142,9 @@ const FILTERS = [
   { id: 'all', label: 'Todas' },
 ]
 
-export function Matches({ open }) {
+export function Matches({ open, initialFilter = 'pending' }) {
   const { tournament: t } = useStore()
-  const [filter, setFilter] = useState('pending')
+  const [filter, setFilter] = useState(initialFilter)
   const list = t.matches.filter((m) => (filter === 'all' ? true : filter === 'played' ? !!m.result : !m.result))
   const sections = []
   for (const m of list) {

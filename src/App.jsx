@@ -28,6 +28,8 @@ export default function App() {
   const [tab, setTab] = useState(readTab)
   const [openId, setOpenId] = useState(null)
   const [moreOpen, setMoreOpen] = useState(false)
+  // filtro inicial da aba Partidas ("Ver todas" dos últimos resultados abre nas jogadas)
+  const [matchFilter, setMatchFilter] = useState('pending')
 
   useEffect(() => {
     const onHash = () => setTab(readTab())
@@ -39,7 +41,8 @@ export default function App() {
     document.querySelector('.tab.active')?.scrollIntoView({ inline: 'center', block: 'nearest' })
   }, [tab, state.status])
 
-  const goTo = (id) => {
+  const goTo = (id, filter = 'pending') => {
+    setMatchFilter(filter)
     window.location.hash = id
     setTab(id)
     setMoreOpen(false)
@@ -81,7 +84,7 @@ export default function App() {
       </header>
       <main className="content" key={tab}>
         {tab === 'home' && <Home {...props} />}
-        {tab === 'matches' && <Matches {...props} />}
+        {tab === 'matches' && <Matches {...props} initialFilter={matchFilter} />}
         {tab === 'groups' && <Groups {...props} />}
         {tab === 'bracket' && <BracketPage {...props} />}
         {tab === 'scorers' && <ScorersPage {...props} />}
