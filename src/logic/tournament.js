@@ -10,13 +10,13 @@ export const FORMATS = {
     cafe: true,
     ko: 'semis',
     title: '7 participantes',
-    summary: '2 grupos de 4 com café com leite',
+    summary: '2 grupos de 4 · com café com leite',
     steps: [
       'O café com leite ☕ joga nos grupos A e B, completando os 2 grupos de 4.',
-      'Fase de grupos: todos contra todos. Passam os 2 melhores de cada grupo (o café com leite nunca se classifica).',
+      'Ele só conta no grupo em que terminou melhor. No outro grupo ele é ignorado, e esse grupo classifica os 2 melhores sem ele.',
+      'Passam os 2 melhores de cada grupo (o café com leite pode ser um deles).',
       'Semifinais: 1º A × 2º B e 1º B × 2º A.',
       'Final em jogo único 🏆',
-      'Pato: o café com leite enfrenta o pior dos eliminados.',
     ],
   },
   8: {
@@ -72,11 +72,11 @@ export const FORMATS = {
     cafe: true,
     ko: 'quarters',
     title: '11 participantes',
-    summary: '3 grupos de 4 com café com leite',
+    summary: '3 grupos de 4 · com café com leite',
     steps: [
       'O café com leite ☕ joga nos grupos A e B. O grupo C tem 4 jogadores.',
-      'Fase de grupos: todos contra todos. O café com leite nunca se classifica.',
-      'Passam os 2 primeiros de cada grupo + os 2 melhores 3º colocados.',
+      'Ele só conta no grupo em que terminou melhor. No outro grupo ele é ignorado, e esse grupo classifica sem ele.',
+      'Passam os 2 primeiros de cada grupo + os 2 melhores 3º colocados (o café com leite pode ser um deles).',
       'Quartas de final: 1º × 8º, 4º × 5º, 2º × 7º, 3º × 6º (pela campanha).',
       'Semifinais e final em jogo único 🏆',
       'Pato: o café com leite enfrenta o pior dos eliminados.',
@@ -235,7 +235,22 @@ export function computeTournament(state) {
   for (const g of groups) {
     const gms = groupMatches.filter((m) => m.groupId === g.id)
     groupTables[g.id] = computeTable(g.playerIds, gms, results, byName)
-    realTables[g.id] = groupTables[g.id].filter((r) => r.playerId !== cafe)
+  }
+  // Café com leite joga em 2 grupos, mas só conta no grupo em que foi melhor (posição, depois campanha).
+  // No outro grupo ele é ignorado, e esse grupo classifica um jogador a mais.
+  let cafeGroup = null
+  if (cafe) {
+    const cands = groups
+      .filter((g) => g.playerIds.includes(cafe))
+      .map((g) => {
+        const i = groupTables[g.id].findIndex((r) => r.playerId === cafe)
+        return { g: g.id, pos: i, row: groupTables[g.id][i] }
+      })
+      .sort((a, b) => a.pos - b.pos || compareStats(a.row, b.row) || a.g.localeCompare(b.g))
+    cafeGroup = cands[0]?.g || null
+  }
+  for (const g of groups) {
+    realTables[g.id] = g.id === cafeGroup ? groupTables[g.id] : groupTables[g.id].filter((r) => r.playerId !== cafe)
   }
   const cafeRow = cafe ? computeTable([cafe], groupMatches, results)[0] : null
   const phase1Done = groupMatches.length > 0 && groupMatches.every((m) => m.result)
@@ -248,11 +263,6 @@ export function computeTournament(state) {
       groupPos[row.playerId] = { group: g.id, pos: i + 1 }
       statsOf[row.playerId] = row
     })
-  }
-
-  if (cafe) {
-    groupPos[cafe] = { group: groups.filter((g) => g.playerIds.includes(cafe)).map((g) => g.id).join(' e '), pos: 99 }
-    statsOf[cafe] = cafeRow
   }
 
   const cmpOverall = (a, b) =>
@@ -277,7 +287,7 @@ export function computeTournament(state) {
 
   const eliminated = groups
     .flatMap((g) => g.playerIds)
-    .filter((id, i, arr) => !qualifiedSet.has(id) && id !== cafe && arr.indexOf(id) === i)
+    .filter((id, i, arr) => !qualifiedSet.has(id) && arr.indexOf(id) === i)
     .sort((a, b) => compareStats(statsOf[a], statsOf[b]) || groupPos[a].pos - groupPos[b].pos || byName(a, b))
 
   const pos = (gid, n) => (phase1Done ? realTables[gid]?.[n - 1]?.playerId || null : null)
@@ -388,14 +398,13 @@ export function computeTournament(state) {
     })
   }
 
-  // Candidatos ao pato, do melhor para o pior. Com café com leite, ele é sempre o último.
-  const patoCandidates = cafe ? [...eliminated, cafe] : eliminated
+  const patoCandidates = eliminated
   const n = patoCandidates.length
   ko({
     id: 'PATO', stage: 'pato', title: 'Disputa do Pato', subtitle: 'Perdedor leva o pato',
     home: phase1Done && n >= 2 ? patoCandidates[n - 2] : null,
-    away: phase1Done && n >= 2 ? patoCandidates[n - 1] : cafe,
-    homeLabel: cafe ? 'Pior eliminado' : 'Penúltimo geral', awayLabel: cafe ? 'Café com leite' : 'Último geral',
+    away: phase1Done && n >= 2 ? patoCandidates[n - 1] : null,
+    homeLabel: 'Penúltimo geral', awayLabel: 'Último geral',
   })
   ko({
     id: 'F', stage: 'final', title: 'Final', subtitle: 'Valendo a taça 🏆',
@@ -422,6 +431,7 @@ export function computeTournament(state) {
     realTables,
     groupPos,
     cafe,
+    cafeGroup,
     cafeRow,
     patoCandidates,
     phase1Done,
@@ -492,7 +502,7 @@ export function playerStatus(t, id) {
   if (t.champion === id) return { label: 'Campeão', tone: 'gold' }
   if (t.vice === id) return { label: 'Vice', tone: 'silver' }
   if (t.pato === id) return { label: 'Pato', tone: 'pato' }
-  if (t.cafe === id) return { label: 'Café com leite', tone: 'cafe' }
+  if (t.cafe === id && !t.phase1Done) return { label: 'Café com leite', tone: 'cafe' }
   if (!t.phase1Done) return { label: 'Fase de grupos', tone: 'neutral' }
   if (!t.qualified.has(id)) {
     const p = t.matches.find((m) => m.id === 'PATO')

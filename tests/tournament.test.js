@@ -37,14 +37,16 @@ for (const format of [7, 8, 9, 10, 11, 12]) {
       assert.equal(t.playedCount, t.totalMatches)
       assert.ok(!t.qualified.has(t.pato))
       if (st.cafe) {
-        assert.ok(!t.qualified.has(st.cafe), 'café não se classifica')
-        const pm = t.matches.find((m) => m.id === 'PATO')
-        assert.equal(pm.awayId, st.cafe, 'café no pato')
         const n = st.groupMatches.filter((m) => m.homeId === st.cafe || m.awayId === st.cafe).length
         assert.equal(n, 6, 'café joga 6')
         for (const p of st.players.filter((p) => p.id !== st.cafe)) {
           assert.equal(st.groupMatches.filter((m) => m.homeId === p.id || m.awayId === p.id).length, 3)
         }
+        assert.equal(t.qualified.size, format === 7 ? 4 : 8)
+        assert.equal(t.eliminated.length, 3)
+        // café só aparece na tabela de classificação de um grupo
+        const inReal = Object.values(t.realTables).filter((rows) => rows.some((r) => r.playerId === st.cafe)).length
+        assert.equal(inReal, 1)
       }
       // cada jogador do grupo de 10 joga 2 jogos
       if (format === 10) {
@@ -71,4 +73,26 @@ test('contagem de jogos por formato', () => {
   assert.equal(computeTournament(setup(9)).totalMatches, 9 + 3 + 3 + 2 + 1 + 1)
   assert.equal(computeTournament(setup(10)).totalMatches, 10 + 3 + 3 + 2 + 1 + 1)
   assert.equal(computeTournament(setup(12)).totalMatches, 18 + 4 + 2 + 1 + 1)
+})
+
+test('café com leite classificado abre vaga no outro grupo (7)', () => {
+  const f = FORMATS[7]
+  const players = Array.from({ length: 7 }, (_, i) => ({ id: `p${i}`, name: `J${i}`, team: `t${i}` }))
+  const cafe = 'p6'
+  const groups = [{ id: 'A', playerIds: ['p0', 'p1', 'p2', cafe] }, { id: 'B', playerIds: ['p3', 'p4', 'p5', cafe] }]
+  const st = { format: 7, players, groups, cafe, groupMatches: buildGroupMatches(groups, null, cafe), results: {}, overrides: {} }
+  // café vence todos no grupo A e perde todos no B
+  for (const m of st.groupMatches) {
+    let hg = 1, ag = 0
+    if (m.groupId === 'A' && m.awayId === cafe) { hg = 0; ag = 3 }
+    if (m.groupId === 'A' && m.homeId === cafe) { hg = 3; ag = 0 }
+    if (m.groupId === 'B' && m.homeId === cafe) { hg = 0; ag = 2 }
+    st.results[m.id] = { homeId: m.homeId, awayId: m.awayId, hg, ag, scorers: [] }
+  }
+  const t = computeTournament(st)
+  assert.equal(t.cafeGroup, 'A')
+  assert.ok(t.qualified.has(cafe))
+  assert.equal(t.qualified.size, 4)
+  assert.equal([...t.qualified].filter((id) => groups[1].playerIds.includes(id) && id !== cafe).length, 2)
+  void f
 })

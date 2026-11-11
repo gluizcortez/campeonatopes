@@ -17,6 +17,9 @@ export function GroupTable({ groupId, compact }) {
       <div className="gtable-title">
         <span className="group-badge">{groupId}</span> Grupo {groupId}
       </div>
+      {t.cafe && t.cafeGroup && t.cafeGroup !== groupId && rows.some((r) => r.playerId === t.cafe) && (
+        <div className="cafe-note">☕ O café com leite conta no Grupo {t.cafeGroup}. Aqui ele não ocupa vaga.</div>
+      )}
       <table>
         <thead>
           <tr>
@@ -37,15 +40,18 @@ export function GroupTable({ groupId, compact }) {
           {rows.map((r) => {
             const q = t.qualified.has(r.playerId) && t.phase1Done
             const isCafe = r.playerId === t.cafe
-            const i = isCafe ? -1 : (t.realTables[groupId] || rows).findIndex((x) => x.playerId === r.playerId)
-            const zone = isCafe ? 'cafe' : i < cut ? 'q' : FORMATS[state.format].ko === 'quarters' && i === 2 ? 'maybe' : 'out'
+            // índice na tabela que vale para classificação (café com leite só conta em um grupo)
+            const i = (t.realTables[groupId] || rows).findIndex((x) => x.playerId === r.playerId)
+            const ignored = i < 0
+            const zone = ignored ? 'cafe' : i < cut ? 'q' : FORMATS[state.format].ko === 'quarters' && i === 2 ? 'maybe' : 'out'
             return (
               <tr key={r.playerId} className={`zone-${zone} ${q ? 'qualified' : ''}`}>
-                <td className="pos"><span className="pos-dot">{isCafe ? '☕' : i + 1}</span></td>
+                <td className="pos"><span className="pos-dot" title={ignored ? `Não conta aqui: conta no Grupo ${t.cafeGroup}` : undefined}>{ignored ? '–' : i + 1}</span></td>
                 <td className="left">
                   <div className="gt-player">
                     <PlayerTag id={r.playerId} size={18} showTeam={!compact} />
                     {seeds.has(r.playerId) && <span className="seed-star" title="Cabeça de chave">★</span>}
+                    {isCafe && <span className="cafe-badge" title="Café com leite">☕</span>}
                   </div>
                 </td>
                 <td className="pts">{r.pts}</td>
@@ -76,7 +82,7 @@ export function Legend() {
     <div className="legend">
       <span><i className="lg q" /> Classificado</span>
       {FORMATS[state.format].ko === 'quarters' && <span><i className="lg maybe" /> Briga entre os melhores 3º</span>}
-      {FORMATS[state.format].cafe && <span>☕ Café com leite (não se classifica)</span>}
+      {FORMATS[state.format].cafe && <span>☕ Café com leite (conta só no grupo em que foi melhor)</span>}
       <span><i className="lg out" /> Fora (briga do pato)</span>
       <span>★ Cabeça de chave</span>
       <span className="muted">Desempate: pontos, vitórias, saldo, gols pró</span>
@@ -125,7 +131,6 @@ export function RepescagemTable() {
 export function PatoRanking() {
   const { state, tournament: t } = useStore()
   const statsMap = Object.fromEntries(Object.values(t.realTables).flat().map((r) => [r.playerId, r]))
-  if (t.cafe) statsMap[t.cafe] = t.cafeRow
   const list = t.patoCandidates
   const n = list.length
   return (
@@ -137,7 +142,7 @@ export function PatoRanking() {
           <div key={id} className={`mr-row ${danger ? 'pato' : ''}`}>
             <span className="mr-pos">{state.players.length - n + i + 1}º</span>
             <PlayerTag id={id} size={18} />
-            <span className="mr-group">{id === t.cafe ? '☕ Café com leite' : `Gr. ${t.groupPos[id]?.group}`}</span>
+            <span className="mr-group">Gr. {t.groupPos[id]?.group}{id === t.cafe ? ' ☕' : ''}</span>
             <span className="mr-stat">{r.pts} {r.pts === 1 ? 'pt' : 'pts'} · {r.v} V · SG {r.sg}</span>
             {danger && <span className="duck">🦆</span>}
           </div>
@@ -186,7 +191,7 @@ export function FormatInfo({ format }) {
   return (
     <ol className="format-steps">
       {f.steps.map((s, i) => <li key={i}>{s}</li>)}
-      {!f.cafe && <li>Pato 🦆: os 2 piores que caíram na fase de grupos se enfrentam. Quem perder é o pato.</li>}
+      <li>Pato 🦆: os 2 piores que caíram na fase de grupos se enfrentam. Quem perder é o pato.</li>
     </ol>
   )
 }

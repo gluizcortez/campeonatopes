@@ -101,7 +101,7 @@ export function Home({ open, goTo }) {
           ) : (
             <>
               <p className="muted small" style={{ marginTop: 0 }}>
-                {t.cafe ? 'O café com leite enfrenta o pior eliminado da fase de grupos.' : 'Os 2 piores entre os eliminados na fase de grupos disputam o pato.'}
+                Os 2 piores entre os eliminados na fase de grupos disputam o pato.
               </p>
               <PatoRanking />
             </>
@@ -268,9 +268,7 @@ export function PatoPage({ open }) {
         <div>
           <h2>A disputa do Pato</h2>
           <p className="muted">
-            {t.cafe
-              ? 'O café com leite ☕ enfrenta o pior entre os eliminados na fase de grupos. Quem perder leva o título de Pato.'
-              : 'Os 2 piores do campeonato (entre quem não passou da fase de grupos) se enfrentam. Quem perder leva o título de Pato.'}
+            Os 2 piores do campeonato (entre quem não passou da fase de grupos) se enfrentam. Quem perder leva o título de Pato.
           </p>
         </div>
       </div>
@@ -283,7 +281,7 @@ export function PatoPage({ open }) {
       <Card title="Jogo do Pato" icon="🦆"><MatchCard match={m} onOpen={open} /></Card>
       <Card title="Ranking dos eliminados" icon="📉">
         <p className="muted small" style={{ marginTop: 0 }}>
-          Ordenado por pontos, vitórias, saldo e gols pró. {t.cafe ? 'O último eliminado (🦆) enfrenta o café com leite.' : 'Os 2 últimos (🦆) vão para a disputa.'}
+          Ordenado por pontos, vitórias, saldo e gols pró. Os 2 últimos (🦆) vão para a disputa.
         </p>
         <PatoRanking />
       </Card>

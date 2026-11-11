@@ -171,7 +171,7 @@ function StepSeeds() {
             <div>
               <b>Café com leite</b>
               <div className="muted small">
-                O jogador mais fraco. Ele joga nos grupos A e B para completar as vagas, nunca se classifica e vai direto para o jogo do Pato.
+                O jogador mais fraco. Ele joga nos grupos A e B para completar as vagas, mas só conta no grupo em que terminar melhor. Pode se classificar normalmente; no outro grupo ele não ocupa vaga.
               </div>
             </div>
           </div>
