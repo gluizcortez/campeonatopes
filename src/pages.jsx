@@ -69,7 +69,9 @@ export function Home({ open, goTo }) {
           {t.upcoming.length ? (
             <div className="list">{t.upcoming.slice(0, 4).map((m) => <MatchCard key={m.id} match={m} onOpen={open} />)}</div>
           ) : (
-            <Empty icon="🗓️">As próximas partidas aparecem aqui quando os confrontos forem definidos.</Empty>
+            <Empty icon={t.finished ? '🏁' : '🗓️'}>
+              {t.finished ? 'Todas as partidas foram disputadas.' : 'As próximas partidas aparecem aqui quando os confrontos forem definidos.'}
+            </Empty>
           )}
         </Card>
         <Card title="Últimos resultados" icon="✅">
@@ -231,10 +233,10 @@ export function ScorersPage() {
           <Scorers list={scorers} />
         </Card>
         <div className="stack">
-          <Card title="Melhor ataque" icon="🔥">
+          <Card title="Melhor ataque" icon="🔥" action={<span className="muted small">média por jogo</span>}>
             <RankList rows={attack.slice(0, 5)} value={(r) => `${r.gp} gols · ${(r.gp / r.j).toFixed(1)}/jogo`} />
           </Card>
-          <Card title="Melhor defesa" icon="🧱">
+          <Card title="Melhor defesa" icon="🧱" action={<span className="muted small">média por jogo</span>}>
             <RankList rows={defense.slice(0, 5)} value={(r) => `${r.gc} sofridos · ${(r.gc / r.j).toFixed(1)}/jogo`} />
           </Card>
         </div>
@@ -289,6 +291,34 @@ export function PatoPage({ open }) {
   )
 }
 
+function NameEdit({ value, onSave }) {
+  const [editing, setEditing] = useState(false)
+  const [draft, setDraft] = useState(value)
+  const done = () => {
+    const v = draft.trim()
+    if (v) onSave(v)
+    else setDraft(value)
+    setEditing(false)
+  }
+  if (!editing) {
+    return (
+      <button className="name-btn" onClick={() => { setDraft(value); setEditing(true) }} title="Editar nome">
+        <span>{value}</span> <span className="name-pen">✏️</span>
+      </button>
+    )
+  }
+  return (
+    <input
+      className="inline-input"
+      autoFocus
+      value={draft}
+      onChange={(e) => setDraft(e.target.value)}
+      onBlur={done}
+      onKeyDown={(e) => { if (e.key === 'Enter') done(); if (e.key === 'Escape') { setDraft(value); setEditing(false) } }}
+    />
+  )
+}
+
 export function Players() {
   const { state, tournament: t, update } = useStore()
   const [picker, setPicker] = useState(null)
@@ -307,13 +337,14 @@ export function Players() {
               <div className="pc-head">
                 <button className="flag-btn" onClick={() => setPicker(p.id)} title="Trocar seleção"><Flag team={p.team} size={40} /></button>
                 <div className="pc-info">
-                  <input
-                    className="inline-input"
+                  <NameEdit
                     value={p.name}
-                    onChange={(e) => update((x) => { x.players.find((y) => y.id === p.id).name = e.target.value })}
+                    onSave={(name) => update((x) => { x.players.find((y) => y.id === p.id).name = name })}
                   />
                   <div className="muted small">
-                    {team?.name} · Grupo {t.groupPos[p.id]?.group}
+                    {team?.name} · {t.cafe === p.id
+                      ? `Grupos ${state.groups.filter((g) => g.playerIds.includes(p.id)).map((g) => g.id).join(' e ')}`
+                      : `Grupo ${t.groupPos[p.id]?.group}`}
                     {state.seeds.includes(p.id) ? ' · ★ Cabeça' : ''}
                     {t.cafe === p.id ? ' · ☕ Café com leite' : ''}
                   </div>

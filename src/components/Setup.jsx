@@ -391,7 +391,12 @@ export function Setup() {
   ][step]
 
   const go = (d) => update((s) => { s.setupStep = Math.max(0, Math.min(STEPS.length - 1, step + d)) })
-  const start = () => update((s) => {
+  const start = () => {
+    window.location.hash = 'home'
+    window.scrollTo({ top: 0 })
+    doStart()
+  }
+  const doStart = () => update((s) => {
     s.players.forEach((p) => { p.name = p.name.trim() })
     s.groupMatches = buildGroupMatches(s.groups, s.format === 10 ? s.groupMatchups : null, FORMATS[s.format].cafe ? s.cafe : null)
     s.results = {}

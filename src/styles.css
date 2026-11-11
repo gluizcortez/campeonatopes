@@ -568,3 +568,10 @@ select option { background: var(--card-solid); }
 
 .cafe-note { font-size: 12px; color: #e6b98a; background: rgba(180, 120, 70, 0.12); border: 1px dashed rgba(230, 185, 138, 0.35); border-radius: 8px; padding: 6px 10px; margin-bottom: 8px; }
 .zone-cafe td { opacity: 0.75; }
+
+.name-btn { background: none; border: 0; padding: 0; text-align: left; font-weight: 800; font-size: 17px; line-height: 1.2; overflow-wrap: anywhere; }
+.name-btn .name-pen { font-size: 12px; opacity: 0; transition: opacity 0.15s; }
+.name-btn:hover .name-pen, .name-btn:focus .name-pen { opacity: 0.8; }
+@media (hover: none) { .name-btn .name-pen { opacity: 0.5; } }
+
+.setup-step > .btn { align-self: flex-start; }

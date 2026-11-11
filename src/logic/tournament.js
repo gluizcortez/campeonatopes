@@ -79,7 +79,6 @@ export const FORMATS = {
       'Passam os 2 primeiros de cada grupo + os 2 melhores 3º colocados (o café com leite pode ser um deles).',
       'Quartas de final: 1º × 8º, 4º × 5º, 2º × 7º, 3º × 6º (pela campanha).',
       'Semifinais e final em jogo único 🏆',
-      'Pato: o café com leite enfrenta o pior dos eliminados.',
     ],
   },
   12: {

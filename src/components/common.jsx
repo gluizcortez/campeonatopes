@@ -9,7 +9,7 @@ export function Flag({ team, size = 28, className = '' }) {
   return (
     <img
       className={`flag ${className}`}
-      src={`/flags/${t.code}.svg`}
+      src={`/flags/${t.code}.png`}
       alt={t.name}
       title={t.name}
       style={{ width: size * 1.4, height: size }}
