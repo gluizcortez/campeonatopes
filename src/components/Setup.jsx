@@ -96,6 +96,7 @@ function StepPlayers() {
   const remove = (id) => update((s) => {
     s.players = s.players.filter((p) => p.id !== id)
     s.seeds = s.seeds.filter((x) => x !== id)
+    if (s.cafe === id) s.cafe = null
     s.groups = []
   })
   const pickerPlayer = state.players.find((p) => p.id === picker)

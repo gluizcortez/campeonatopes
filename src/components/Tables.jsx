@@ -96,7 +96,7 @@ export function ThirdsTable() {
   return (
     <div className="mini-rank">
       {t.thirdsRanking.map((id, i) => {
-        const row = Object.values(t.groupTables).flat().find((r) => r.playerId === id)
+        const row = Object.values(t.realTables).flat().find((r) => r.playerId === id)
         return (
           <div key={id} className={`mr-row ${i < 2 ? 'ok' : 'bad'}`}>
             <span className="mr-pos">{i + 1}º</span>

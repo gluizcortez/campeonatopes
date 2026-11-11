@@ -98,7 +98,7 @@ function ScorerInputs({ side, count, scorers, setScorers, teamId, listId }) {
 }
 
 export function ResultModal({ match, onClose }) {
-  const { state, update } = useStore()
+  const { state, update, tournament } = useStore()
   const existing = match?.result
   const [hg, setHg] = useState(existing?.hg ?? 0)
   const [ag, setAg] = useState(existing?.ag ?? 0)
@@ -114,6 +114,17 @@ export function ResultModal({ match, onClose }) {
   const needPens = match?.knockout && hg === ag
   const pensInvalid = needPens && ph === pa
   const sorted = useMemo(() => state.players.slice().sort((a, b) => a.name.localeCompare(b.name)), [state.players])
+  // Um jogador não pode estar em dois confrontos da mesma fase (exceto o triangular da repescagem).
+  // Se escolherem alguém que já está em outro jogo da fase, os dois jogos trocam de jogador.
+  const otherMatchOf = (id) => (match?.stage === 'repescagem' ? null : tournament?.matches.find(
+    (m) => m.id !== match?.id && m.stage === match?.stage && (m.homeId === id || m.awayId === id),
+  ))
+  const swaps = [[match?.homeId, ovHome], [match?.awayId, ovAway]]
+    .filter(([oldId, newId]) => newId && newId !== oldId && newId !== match?.homeId && newId !== match?.awayId)
+    .map(([oldId, newId]) => ({ oldId, newId, other: otherMatchOf(newId) }))
+    .filter((x) => x.other)
+  const swapBlocked = swaps.filter((x) => x.other.result)
+  const pname = (id) => state.players.find((p) => p.id === id)?.name
 
   if (!match) return null
 
@@ -143,11 +154,20 @@ export function ResultModal({ match, onClose }) {
   const saveOverride = () => {
     update((s) => {
       s.overrides[match.id] = { homeId: ovHome, awayId: ovAway }
+      for (const { oldId, newId, other } of swaps) {
+        const cur = s.overrides[other.id] || { homeId: other.homeId, awayId: other.awayId }
+        s.overrides[other.id] = {
+          homeId: cur.homeId === newId ? oldId : cur.homeId,
+          awayId: cur.awayId === newId ? oldId : cur.awayId,
+        }
+      }
     })
     onClose()
   }
   const clearOverride = () => {
-    update((s) => { delete s.overrides[match.id] })
+    // desfaz os ajustes de toda a fase, já que uma troca mexe em dois jogos
+    const sameStage = tournament.matches.filter((m) => m.stage === match.stage && !m.result).map((m) => m.id)
+    update((s) => { for (const id of sameStage) delete s.overrides[id] })
     onClose()
   }
 
@@ -170,10 +190,17 @@ export function ResultModal({ match, onClose }) {
               </select>
             </label>
           </div>
+          {swaps.map((x) => (
+            <div key={x.newId} className={x.other.result ? 'warn small' : 'muted small'} style={{ marginTop: 8 }}>
+              {x.other.result
+                ? `${pname(x.newId)} já jogou outro jogo desta fase (${x.other.subtitle}) e não pode ser trocado.`
+                : `🔁 ${pname(x.newId)} sai de ${x.other.subtitle} e ${pname(x.oldId)} entra no lugar dele.`}
+            </div>
+          ))}
           <div className="row-end">
-            {match.overridden && <button className="btn ghost" onClick={clearOverride}>Voltar ao automático</button>}
+            {match.overridden && <button className="btn ghost" onClick={clearOverride}>Voltar ao automático (fase inteira)</button>}
             <button className="btn ghost" onClick={() => setEditing(false)}>Cancelar</button>
-            <button className="btn primary" disabled={!ovHome || !ovAway || ovHome === ovAway} onClick={saveOverride}>Salvar confronto</button>
+            <button className="btn primary" disabled={!ovHome || !ovAway || ovHome === ovAway || swapBlocked.length > 0} onClick={saveOverride}>Salvar confronto</button>
           </div>
         </div>
       ) : (
