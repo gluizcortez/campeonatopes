@@ -18,7 +18,6 @@ export function initialState() {
     groupMatches: [],
     results: {},
     overrides: {},
-    liveMatchId: null,
     createdAt: Date.now(),
   }
 }

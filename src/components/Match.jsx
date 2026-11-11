@@ -23,7 +23,7 @@ function Side({ id, label, score, pens, win, align }) {
 }
 
 // Card compacto de partida, usado em listas
-export function MatchCard({ match, onOpen, live }) {
+export function MatchCard({ match, onOpen }) {
   const r = match.result
   const { outcomes } = useStore().tournament
   const w = outcomes?.[match.id]?.winner
@@ -31,14 +31,13 @@ export function MatchCard({ match, onOpen, live }) {
   const hasPens = r && r.hg === r.ag && r.ph != null
   return (
     <button
-      className={`match-card stage-${match.stage} ${r ? 'played' : ''} ${live ? 'live' : ''} ${!ready ? 'locked' : ''}`}
+      className={`match-card stage-${match.stage} ${r ? 'played' : ''} ${!ready ? 'locked' : ''}`}
       onClick={() => ready && onOpen?.(match)}
       disabled={!ready}
     >
       <div className="mc-top">
         <span className="mc-stage">{stageIcon(match.stage)} {match.title}</span>
         <span className="mc-sub">
-          {live && <span className="live-dot">AO VIVO</span>}
           {match.subtitle}
         </span>
       </div>
@@ -49,36 +48,6 @@ export function MatchCard({ match, onOpen, live }) {
       {match.staleResult && <div className="mc-warn">⚠️ Confronto mudou, resultado antigo ignorado</div>}
       {match.overridden && <div className="mc-note">✏️ Confronto ajustado manualmente</div>}
     </button>
-  )
-}
-
-// Destaque grande da partida atual
-export function HeroMatch({ match, onOpen }) {
-  const { state } = useStore()
-  const home = state.players.find((p) => p.id === match.homeId)
-  const away = state.players.find((p) => p.id === match.awayId)
-  return (
-    <div className={`hero stage-${match.stage}`}>
-      <div className="hero-glow" />
-      <div className="hero-label">
-        <span className="pill live-pill"><span className="pulse" /> Partida atual</span>
-        <span className="hero-stage">{stageIcon(match.stage)} {match.title} · {match.subtitle}</span>
-      </div>
-      <div className="hero-versus">
-        <div className="hero-team">
-          <Flag team={home?.team} size={64} className="hero-flag" />
-          <div className="hero-name">{home?.name}</div>
-          <div className="hero-country">{TEAM_BY_ID[home?.team]?.name}</div>
-        </div>
-        <div className="hero-x">VS</div>
-        <div className="hero-team">
-          <Flag team={away?.team} size={64} className="hero-flag" />
-          <div className="hero-name">{away?.name}</div>
-          <div className="hero-country">{TEAM_BY_ID[away?.team]?.name}</div>
-        </div>
-      </div>
-      <button className="btn primary big" onClick={() => onOpen(match)}>Lançar resultado</button>
-    </div>
   )
 }
 
@@ -162,18 +131,12 @@ export function ResultModal({ match, onClose }) {
           .map((x) => ({ side: x.side, name: (x.name || '').trim(), ownGoal: !!x.ownGoal })),
         playedAt: Date.now(),
       }
-      if (s.liveMatchId === match.id) s.liveMatchId = null
     })
     onClose()
   }
 
   const clear = () => {
     update((s) => { delete s.results[match.id] })
-    onClose()
-  }
-
-  const setLive = () => {
-    update((s) => { s.liveMatchId = match.id })
     onClose()
   }
 
@@ -259,9 +222,6 @@ export function ResultModal({ match, onClose }) {
 
           <div className="row-between">
             <div className="row">
-              {!existing && state.liveMatchId !== match.id && (
-                <button className="btn ghost" onClick={setLive}>▶ Jogar agora</button>
-              )}
               {match.knockout && !existing && (
                 <button className="btn ghost" onClick={() => setEditing(true)}>✏️ Editar confronto</button>
               )}

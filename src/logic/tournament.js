@@ -416,9 +416,8 @@ export function computeTournament(state) {
 
   // Partida atual / próximas
   const ready = matches.filter((m) => !m.result && m.homeId && m.awayId)
-  const live = state.liveMatchId ? ready.find((m) => m.id === state.liveMatchId) : null
-  const current = live || ready[0] || null
-  const upcoming = ready.filter((m) => m !== current)
+  // primeira partida liberada (usada só nos testes para simular o campeonato)
+  const current = ready[0] || null
   const played = matches.filter((m) => m.result)
   const recent = played
     .slice()
@@ -444,7 +443,7 @@ export function computeTournament(state) {
     vice,
     pato,
     current,
-    upcoming,
+    ready,
     recent,
     totalMatches: matches.length,
     playedCount: played.length,

@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react'
 import { useStore } from './store.jsx'
 import { Card, Confirm, Empty, Flag, PlayerTag } from './components/common.jsx'
-import { HeroMatch, MatchCard } from './components/Match.jsx'
+import { MatchCard } from './components/Match.jsx'
 import { GroupTable, Legend, PatoRanking, RepescagemTable, Scorers, ThirdsTable, FormatInfo } from './components/Tables.jsx'
 import { Bracket } from './components/Bracket.jsx'
 import { TeamPicker } from './components/Setup.jsx'
@@ -44,6 +44,8 @@ export function Home({ open, goTo }) {
   const scorers = useMemo(() => computeScorers(t, state.players), [t, state.players])
   const pct = Math.round((t.playedCount / t.totalMatches) * 100)
   const patoMatch = t.matches.find((m) => m.id === 'PATO')
+  const [showAll, setShowAll] = useState(false)
+  const waiting = t.matches.filter((m) => !m.result && (!m.homeId || !m.awayId)).length
 
   return (
     <div className="page home">
@@ -58,30 +60,40 @@ export function Home({ open, goTo }) {
 
       <Podium />
 
-      {t.current ? (
-        <HeroMatch match={t.current} onOpen={open} />
-      ) : !t.finished ? (
-        <Card><Empty icon="⏳">Nenhuma partida liberada no momento.</Empty></Card>
-      ) : null}
+      {!t.finished && (
+        <Card
+          title={`Partidas para jogar${t.ready.length ? ` (${t.ready.length})` : ''}`}
+          icon="🎮"
+          action={t.ready.length > READY_LIMIT && (
+            <button className="link-btn" onClick={() => setShowAll((v) => !v)}>{showAll ? 'Mostrar menos' : 'Ver todas'}</button>
+          )}
+          className="ready-card"
+        >
+          <p className="muted small" style={{ marginTop: 0 }}>
+            Confrontos já definidos e sem resultado. Joguem na ordem que quiserem, até mais de um ao mesmo tempo. Toque no jogo para lançar o placar.
+          </p>
+          {t.ready.length ? (
+            <div className="match-grid">
+              {(showAll ? t.ready : t.ready.slice(0, READY_LIMIT)).map((m) => <MatchCard key={m.id} match={m} onOpen={open} />)}
+            </div>
+          ) : (
+            <Empty icon="⏳">Nenhuma partida liberada no momento.</Empty>
+          )}
+          {waiting > 0 && (
+            <div className="muted small waiting-note">
+              ⏳ Mais {waiting} {waiting === 1 ? 'partida aguarda' : 'partidas aguardam'} o resultado de jogos anteriores para ter o confronto definido.
+            </div>
+          )}
+        </Card>
+      )}
 
-      <div className="grid-2">
-        <Card title="Próximas partidas" icon="📅" action={<button className="link-btn" onClick={() => goTo('matches')}>Ver todas</button>}>
-          {t.upcoming.length ? (
-            <div className="list">{t.upcoming.slice(0, 4).map((m) => <MatchCard key={m.id} match={m} onOpen={open} />)}</div>
-          ) : (
-            <Empty icon={t.finished ? '🏁' : '🗓️'}>
-              {t.finished ? 'Todas as partidas foram disputadas.' : 'As próximas partidas aparecem aqui quando os confrontos forem definidos.'}
-            </Empty>
-          )}
-        </Card>
-        <Card title="Últimos resultados" icon="✅">
-          {t.recent.length ? (
-            <div className="list">{t.recent.slice(0, 4).map((m) => <MatchCard key={m.id} match={m} onOpen={open} />)}</div>
-          ) : (
-            <Empty icon="⚽">Nenhum jogo disputado ainda. Bola rolando!</Empty>
-          )}
-        </Card>
-      </div>
+      <Card title="Últimos resultados" icon="✅" action={t.recent.length > 0 && <button className="link-btn" onClick={() => goTo('matches')}>Ver todas</button>}>
+        {t.recent.length ? (
+          <div className="match-grid">{t.recent.slice(0, 4).map((m) => <MatchCard key={m.id} match={m} onOpen={open} />)}</div>
+        ) : (
+          <Empty icon="⚽">Nenhum jogo disputado ainda. Bola rolando!</Empty>
+        )}
+      </Card>
 
       <Card title="Grupos" icon="🟢" action={<button className="link-btn" onClick={() => goTo('groups')}>Detalhes</button>}>
         <div className={`groups-grid g${state.groups.length}`}>
@@ -114,10 +126,12 @@ export function Home({ open, goTo }) {
   )
 }
 
+const READY_LIMIT = 6
+
 function stageNow(t) {
   if (!t.phase1Done) return 'Fase de grupos em andamento'
-  const c = t.current
-  return c ? `${STAGES[c.stage]} em andamento` : 'Aguardando definição'
+  const stages = [...new Set(t.ready.map((m) => STAGES[m.stage]))]
+  return stages.length ? `${stages.join(' · ')} em andamento` : 'Aguardando definição'
 }
 
 const FILTERS = [
@@ -149,7 +163,7 @@ export function Matches({ open }) {
         <section key={s.key} className="match-section">
           <h3 className="section-title">{s.key}</h3>
           <div className="match-grid">
-            {s.items.map((m) => <MatchCard key={m.id} match={m} onOpen={open} live={t.current?.id === m.id} />)}
+            {s.items.map((m) => <MatchCard key={m.id} match={m} onOpen={open} />)}
           </div>
         </section>
       ))}
@@ -167,7 +181,7 @@ export function Groups({ open }) {
           <Card key={g.id} className="group-card">
             <GroupTable groupId={g.id} />
             <div className="group-matches">
-              {t.matches.filter((m) => m.groupId === g.id).map((m) => <MatchCard key={m.id} match={m} onOpen={open} live={t.current?.id === m.id} />)}
+              {t.matches.filter((m) => m.groupId === g.id).map((m) => <MatchCard key={m.id} match={m} onOpen={open} />)}
             </div>
           </Card>
         ))}
@@ -419,8 +433,8 @@ export function Settings() {
         onClose={() => setConfirm(null)}
         onConfirm={() => {
           if (confirm === 'all') reset()
-          if (confirm === 'results') update((s) => { s.results = {}; s.overrides = {}; s.liveMatchId = null })
-          if (confirm === 'regroup') update((s) => { s.results = {}; s.overrides = {}; s.liveMatchId = null; s.status = 'setup'; s.setupStep = 3; s.groupMatches = [] })
+          if (confirm === 'results') update((s) => { s.results = {}; s.overrides = {} })
+          if (confirm === 'regroup') update((s) => { s.results = {}; s.overrides = {}; s.status = 'setup'; s.setupStep = 3; s.groupMatches = [] })
         }}
       />
     </div>
