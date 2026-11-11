@@ -100,7 +100,9 @@ export function Home({ open, goTo }) {
             <MatchCard match={patoMatch} onOpen={open} />
           ) : (
             <>
-              <p className="muted small" style={{ marginTop: 0 }}>Os 2 piores entre os eliminados na fase de grupos disputam o pato.</p>
+              <p className="muted small" style={{ marginTop: 0 }}>
+                {t.cafe ? 'O café com leite enfrenta o pior eliminado da fase de grupos.' : 'Os 2 piores entre os eliminados na fase de grupos disputam o pato.'}
+              </p>
               <PatoRanking />
             </>
           )}
@@ -168,7 +170,7 @@ export function Groups({ open }) {
           </Card>
         ))}
       </div>
-      {state.format === 12 && (
+      {FORMATS[state.format].ko === 'quarters' && (
         <Card title="Ranking dos 3º colocados" icon="🥉">
           <p className="muted small" style={{ marginTop: 0 }}>Os 2 melhores terceiros avançam às quartas.</p>
           <ThirdsTable />
@@ -186,7 +188,7 @@ export function BracketPage({ open }) {
         {!t.phase1Done && <p className="muted small" style={{ marginTop: 0 }}>Os confrontos aparecem quando a fase de grupos terminar.</p>}
         <Bracket onOpen={open} />
       </Card>
-      {state.format === 12 && t.phase1Done && (
+      {FORMATS[state.format].ko === 'quarters' && t.phase1Done && (
         <Card title="Ranking geral dos classificados" icon="📊">
           <div className="mini-rank">
             {t.overallSeeds.map((id, i) => (
@@ -265,7 +267,11 @@ export function PatoPage({ open }) {
         <div className="pato-duck">🦆</div>
         <div>
           <h2>A disputa do Pato</h2>
-          <p className="muted">Os 2 piores do campeonato (entre quem não passou da fase de grupos) se enfrentam. Quem perder leva o título de Pato.</p>
+          <p className="muted">
+            {t.cafe
+              ? 'O café com leite ☕ enfrenta o pior entre os eliminados na fase de grupos. Quem perder leva o título de Pato.'
+              : 'Os 2 piores do campeonato (entre quem não passou da fase de grupos) se enfrentam. Quem perder leva o título de Pato.'}
+          </p>
         </div>
       </div>
       {t.pato && (
@@ -276,7 +282,9 @@ export function PatoPage({ open }) {
       )}
       <Card title="Jogo do Pato" icon="🦆"><MatchCard match={m} onOpen={open} /></Card>
       <Card title="Ranking dos eliminados" icon="📉">
-        <p className="muted small" style={{ marginTop: 0 }}>Ordenado por pontos, vitórias, saldo e gols pró. Os 2 últimos (🦆) vão para a disputa.</p>
+        <p className="muted small" style={{ marginTop: 0 }}>
+          Ordenado por pontos, vitórias, saldo e gols pró. {t.cafe ? 'O último eliminado (🦆) enfrenta o café com leite.' : 'Os 2 últimos (🦆) vão para a disputa.'}
+        </p>
         <PatoRanking />
       </Card>
     </div>
@@ -306,7 +314,11 @@ export function Players() {
                     value={p.name}
                     onChange={(e) => update((x) => { x.players.find((y) => y.id === p.id).name = e.target.value })}
                   />
-                  <div className="muted small">{team?.name} · Grupo {t.groupPos[p.id]?.group}{state.seeds.includes(p.id) ? ' · ★ Cabeça' : ''}</div>
+                  <div className="muted small">
+                    {team?.name} · Grupo {t.groupPos[p.id]?.group}
+                    {state.seeds.includes(p.id) ? ' · ★ Cabeça' : ''}
+                    {t.cafe === p.id ? ' · ☕ Café com leite' : ''}
+                  </div>
                 </div>
                 <span className={`status s-${st.tone}`}>{st.label}</span>
               </div>

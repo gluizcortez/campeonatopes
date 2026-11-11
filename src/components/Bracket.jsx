@@ -33,9 +33,10 @@ export function Bracket({ onOpen, compact }) {
   const final = by('final')[0]
   const champion = t.champion
 
-  const cols = state.format === 8
+  const kind = FORMATS[state.format].ko
+  const cols = kind === 'semis'
     ? [{ title: 'Semifinais', items: by('semi') }]
-    : state.format === 12
+    : kind === 'quarters'
     ? [
         { title: 'Quartas', items: by('quarter') },
         { title: 'Semifinais', items: by('semi') },

@@ -12,6 +12,7 @@ export function initialState() {
     format: null,
     players: [],
     seeds: [],
+    cafe: null,
     groups: [],
     groupMatchups: {},
     groupMatches: [],

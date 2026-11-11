@@ -49,6 +49,7 @@ function StepFormat() {
             className={`format-card ${state.format === f.size ? 'selected' : ''}`}
             onClick={() => update((s) => {
               s.format = f.size
+              if (!f.cafe) s.cafe = null
               // remove linhas vazias que sobraram de outro formato
               s.players = s.players.filter((p, i) => i < f.size || p.name.trim() || p.team)
               s.seeds = s.seeds.slice(0, f.groups)
@@ -137,6 +138,12 @@ function StepSeeds() {
   const toggle = (id) => update((s) => {
     if (s.seeds.includes(id)) s.seeds = s.seeds.filter((x) => x !== id)
     else if (s.seeds.length < f.groups) s.seeds.push(id)
+    if (s.cafe === id) s.cafe = null
+    s.groups = []
+  })
+  const pickCafe = (id) => update((s) => {
+    s.cafe = s.cafe === id ? null : id
+    s.seeds = s.seeds.filter((x) => x !== id)
     s.groups = []
   })
   return (
@@ -148,6 +155,7 @@ function StepSeeds() {
       <div className="seed-grid">
         {state.players.map((p) => {
           const idx = state.seeds.indexOf(p.id)
+          if (p.id === state.cafe) return null
           return (
             <button key={p.id} className={`seed-opt ${idx >= 0 ? 'selected' : ''}`} onClick={() => toggle(p.id)}>
               <PlayerTag id={p.id} />
@@ -156,13 +164,37 @@ function StepSeeds() {
           )
         })}
       </div>
+      {f.cafe && (
+        <>
+          <div className="cafe-intro">
+            <div className="cafe-icon">☕</div>
+            <div>
+              <b>Café com leite</b>
+              <div className="muted small">
+                O jogador mais fraco. Ele joga nos grupos A e B para completar as vagas, nunca se classifica e vai direto para o jogo do Pato.
+              </div>
+            </div>
+          </div>
+          <div className="seed-grid">
+            {state.players.filter((p) => !state.seeds.includes(p.id)).map((p) => (
+              <button key={p.id} className={`seed-opt cafe ${state.cafe === p.id ? 'selected' : ''}`} onClick={() => pickCafe(p.id)}>
+                <PlayerTag id={p.id} />
+                {state.cafe === p.id ? <span className="seed-badge">☕ Café com leite</span> : <span className="seed-badge off">☕</span>}
+              </button>
+            ))}
+          </div>
+        </>
+      )}
     </div>
   )
 }
 
 function emptyGroups(state) {
   const f = FORMATS[state.format]
-  return GROUP_IDS.slice(0, f.groups).map((id, i) => ({ id, playerIds: [state.seeds[i]] }))
+  return GROUP_IDS.slice(0, f.groups).map((id, i) => ({
+    id,
+    playerIds: f.cafe && state.cafe && i < 2 ? [state.seeds[i], state.cafe] : [state.seeds[i]],
+  }))
 }
 
 function StepGroups() {
@@ -229,9 +261,11 @@ function StepGroups() {
           <div className="gs-card" key={g.id}>
             <div className="gs-head"><span className="group-badge">{g.id}</span> Grupo {g.id} <span className="muted small">{g.playerIds.length}/{f.perGroup}</span></div>
             {g.playerIds.map((pid, i) => (
-              <div className="gs-row" key={pid}>
+              <div className={`gs-row ${pid === state.cafe ? 'is-cafe' : ''}`} key={pid}>
                 <PlayerTag id={pid} size={18} />
-                {i === 0 ? <span className="seed-star">★</span> : <button className="icon-btn small" onClick={() => removeFrom(g.id, pid)}>✕</button>}
+                {i === 0 ? <span className="seed-star">★</span>
+                  : pid === state.cafe ? <span className="cafe-badge" title="Café com leite">☕</span>
+                  : <button className="icon-btn small" onClick={() => removeFrom(g.id, pid)}>✕</button>}
               </div>
             ))}
             {Array.from({ length: f.perGroup - g.playerIds.length }).map((_, i) => (
@@ -309,7 +343,7 @@ function Matchups({ groups }) {
 function StepReview() {
   const { state } = useStore()
   const groups = state.groups
-  const total = buildGroupMatches(groups, state.groupMatchups).length
+  const total = buildGroupMatches(groups, state.format === 10 ? state.groupMatchups : null, state.cafe).length
   return (
     <div className="setup-step">
       <div className="review-hero">
@@ -321,7 +355,11 @@ function StepReview() {
           <div className="gs-card" key={g.id}>
             <div className="gs-head"><span className="group-badge">{g.id}</span> Grupo {g.id}</div>
             {g.playerIds.map((pid, i) => (
-              <div className="gs-row" key={pid}><PlayerTag id={pid} size={18} />{i === 0 && <span className="seed-star">★</span>}</div>
+              <div className={`gs-row ${pid === state.cafe ? 'is-cafe' : ''}`} key={pid}>
+                <PlayerTag id={pid} size={18} />
+                {i === 0 && <span className="seed-star">★</span>}
+                {pid === state.cafe && <span className="cafe-badge">☕</span>}
+              </div>
             ))}
           </div>
         ))}
@@ -338,7 +376,7 @@ export function Setup() {
 
   const playersOk = f && state.players.length === f.size && state.players.every((p) => p.name.trim() && p.team)
   const namesUnique = playersOk && new Set(state.players.map((p) => p.name.trim().toLowerCase())).size === f.size
-  const seedsOk = f && state.seeds.length === f.groups
+  const seedsOk = f && state.seeds.length === f.groups && (!f.cafe || (state.cafe && !state.seeds.includes(state.cafe)))
   const groupsOk = f && state.groups.length === f.groups && state.groups.every((g) => g.playerIds.length === f.perGroup)
     && (state.format !== 10 || matchupsValid(state.groups, state.groupMatchups))
 
@@ -347,7 +385,7 @@ export function Setup() {
     'Escolha um formato.',
     f && state.players.length > f.size ? `Remova ${state.players.length - f.size} jogador(es) para ficar com ${f.size}.`
       : !playersOk ? 'Preencha nome e seleção de todos.' : !namesUnique ? 'Há nomes repetidos.' : '',
-    `Selecione ${f?.groups} cabeças de chave.`,
+    state.seeds.length !== f?.groups ? `Selecione ${f?.groups} cabeças de chave.` : 'Escolha o café com leite.',
     'Complete todos os grupos.',
     '',
   ][step]
@@ -355,7 +393,7 @@ export function Setup() {
   const go = (d) => update((s) => { s.setupStep = Math.max(0, Math.min(STEPS.length - 1, step + d)) })
   const start = () => update((s) => {
     s.players.forEach((p) => { p.name = p.name.trim() })
-    s.groupMatches = buildGroupMatches(s.groups, s.format === 10 ? s.groupMatchups : null)
+    s.groupMatches = buildGroupMatches(s.groups, s.format === 10 ? s.groupMatchups : null, FORMATS[s.format].cafe ? s.cafe : null)
     s.results = {}
     s.overrides = {}
     s.status = 'running'

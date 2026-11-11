@@ -34,12 +34,14 @@ export function GroupTable({ groupId, compact }) {
           </tr>
         </thead>
         <tbody>
-          {rows.map((r, i) => {
+          {rows.map((r) => {
             const q = t.qualified.has(r.playerId) && t.phase1Done
-            const zone = i < cut ? 'q' : state.format === 12 && i === 2 ? 'maybe' : 'out'
+            const isCafe = r.playerId === t.cafe
+            const i = isCafe ? -1 : (t.realTables[groupId] || rows).findIndex((x) => x.playerId === r.playerId)
+            const zone = isCafe ? 'cafe' : i < cut ? 'q' : FORMATS[state.format].ko === 'quarters' && i === 2 ? 'maybe' : 'out'
             return (
               <tr key={r.playerId} className={`zone-${zone} ${q ? 'qualified' : ''}`}>
-                <td className="pos"><span className="pos-dot">{i + 1}</span></td>
+                <td className="pos"><span className="pos-dot">{isCafe ? '☕' : i + 1}</span></td>
                 <td className="left">
                   <div className="gt-player">
                     <PlayerTag id={r.playerId} size={18} showTeam={!compact} />
@@ -73,7 +75,8 @@ export function Legend() {
   return (
     <div className="legend">
       <span><i className="lg q" /> Classificado</span>
-      {state.format === 12 && <span><i className="lg maybe" /> Briga entre os melhores 3º</span>}
+      {FORMATS[state.format].ko === 'quarters' && <span><i className="lg maybe" /> Briga entre os melhores 3º</span>}
+      {FORMATS[state.format].cafe && <span>☕ Café com leite (não se classifica)</span>}
       <span><i className="lg out" /> Fora (briga do pato)</span>
       <span>★ Cabeça de chave</span>
       <span className="muted">Desempate: pontos, vitórias, saldo, gols pró</span>
@@ -121,18 +124,20 @@ export function RepescagemTable() {
 
 export function PatoRanking() {
   const { state, tournament: t } = useStore()
-  const statsMap = Object.fromEntries(Object.values(t.groupTables).flat().map((r) => [r.playerId, r]))
-  const n = t.eliminated.length
+  const statsMap = Object.fromEntries(Object.values(t.realTables).flat().map((r) => [r.playerId, r]))
+  if (t.cafe) statsMap[t.cafe] = t.cafeRow
+  const list = t.patoCandidates
+  const n = list.length
   return (
     <div className="mini-rank">
-      {t.eliminated.map((id, i) => {
+      {list.map((id, i) => {
         const r = statsMap[id]
         const danger = i >= n - 2
         return (
           <div key={id} className={`mr-row ${danger ? 'pato' : ''}`}>
             <span className="mr-pos">{state.players.length - n + i + 1}º</span>
             <PlayerTag id={id} size={18} />
-            <span className="mr-group">Gr. {t.groupPos[id]?.group}</span>
+            <span className="mr-group">{id === t.cafe ? '☕ Café com leite' : `Gr. ${t.groupPos[id]?.group}`}</span>
             <span className="mr-stat">{r.pts} {r.pts === 1 ? 'pt' : 'pts'} · {r.v} V · SG {r.sg}</span>
             {danger && <span className="duck">🦆</span>}
           </div>
@@ -181,7 +186,7 @@ export function FormatInfo({ format }) {
   return (
     <ol className="format-steps">
       {f.steps.map((s, i) => <li key={i}>{s}</li>)}
-      <li>Em todos os formatos, os 2 piores que caíram na fase de grupos disputam o Pato 🦆</li>
+      {!f.cafe && <li>Pato 🦆: os 2 piores que caíram na fase de grupos se enfrentam. Quem perder é o pato.</li>}
     </ol>
   )
 }

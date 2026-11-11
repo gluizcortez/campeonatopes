@@ -3,7 +3,24 @@
 export const GROUP_IDS = ['A', 'B', 'C']
 
 export const FORMATS = {
+  7: {
+    size: 7,
+    groups: 2,
+    perGroup: 4,
+    cafe: true,
+    ko: 'semis',
+    title: '7 participantes',
+    summary: '2 grupos de 4 com café com leite',
+    steps: [
+      'O café com leite ☕ joga nos grupos A e B, completando os 2 grupos de 4.',
+      'Fase de grupos: todos contra todos. Passam os 2 melhores de cada grupo (o café com leite nunca se classifica).',
+      'Semifinais: 1º A × 2º B e 1º B × 2º A.',
+      'Final em jogo único 🏆',
+      'Pato: o café com leite enfrenta o pior dos eliminados.',
+    ],
+  },
   8: {
+    ko: 'semis',
     size: 8,
     groups: 2,
     perGroup: 4,
@@ -16,6 +33,7 @@ export const FORMATS = {
     ],
   },
   9: {
+    ko: 'repescagem',
     repescagem: true,
     size: 9,
     groups: 3,
@@ -31,6 +49,7 @@ export const FORMATS = {
     ],
   },
   10: {
+    ko: 'repescagem',
     repescagem: true,
     size: 10,
     groups: 2,
@@ -46,7 +65,25 @@ export const FORMATS = {
       'Final em jogo único 🏆',
     ],
   },
+  11: {
+    size: 11,
+    groups: 3,
+    perGroup: 4,
+    cafe: true,
+    ko: 'quarters',
+    title: '11 participantes',
+    summary: '3 grupos de 4 com café com leite',
+    steps: [
+      'O café com leite ☕ joga nos grupos A e B. O grupo C tem 4 jogadores.',
+      'Fase de grupos: todos contra todos. O café com leite nunca se classifica.',
+      'Passam os 2 primeiros de cada grupo + os 2 melhores 3º colocados.',
+      'Quartas de final: 1º × 8º, 4º × 5º, 2º × 7º, 3º × 6º (pela campanha).',
+      'Semifinais e final em jogo único 🏆',
+      'Pato: o café com leite enfrenta o pior dos eliminados.',
+    ],
+  },
   12: {
+    ko: 'quarters',
     size: 12,
     groups: 3,
     perGroup: 4,
@@ -85,8 +122,18 @@ export function defaultGroupMatchups(playerIds) {
 }
 
 // Cria a lista de jogos da fase de grupos, intercalando os grupos para dar descanso.
-export function buildGroupMatches(groups, matchups) {
-  const perGroup = groups.map((g) => (matchups?.[g.id] || defaultGroupMatchups(g.playerIds)))
+export function buildGroupMatches(groups, matchups, cafeId) {
+  let cafeCount = 0
+  const perGroup = groups.map((g) => {
+    if (matchups?.[g.id]) return matchups[g.id]
+    let ids = g.playerIds
+    if (cafeId && ids.includes(cafeId)) {
+      // café com leite na última posição do 1º grupo e na 2ª do outro: espalha os jogos dele
+      const rest = ids.filter((x) => x !== cafeId)
+      ids = cafeCount++ === 0 ? [...rest, cafeId] : [rest[0], cafeId, ...rest.slice(1)]
+    }
+    return defaultGroupMatchups(ids)
+  })
   const max = Math.max(0, ...perGroup.map((m) => m.length))
   const size = groups[0]?.playerIds.length || 0
   const perRound = size === 3 ? 1 : 2
@@ -162,6 +209,8 @@ export function computeTable(playerIds, matches, results, tiebreak) {
 // Monta todo o estado derivado do campeonato a partir do que está salvo.
 export function computeTournament(state) {
   const { format, groups = [], results = {}, overrides = {}, players = [] } = state
+  const F = FORMATS[format] || {}
+  const cafe = F.cafe ? state.cafe || null : null
   const nameOf = (id) => players.find((p) => p.id === id)?.name || ''
   const byName = (a, b) => nameOf(a).localeCompare(nameOf(b))
 
@@ -182,20 +231,28 @@ export function computeTournament(state) {
   }
   const groupMatches = matches.slice()
   const groupTables = {}
+  const realTables = {}
   for (const g of groups) {
     const gms = groupMatches.filter((m) => m.groupId === g.id)
     groupTables[g.id] = computeTable(g.playerIds, gms, results, byName)
+    realTables[g.id] = groupTables[g.id].filter((r) => r.playerId !== cafe)
   }
+  const cafeRow = cafe ? computeTable([cafe], groupMatches, results)[0] : null
   const phase1Done = groupMatches.length > 0 && groupMatches.every((m) => m.result)
 
   // Posição de cada jogador no grupo
   const groupPos = {}
   const statsOf = {}
   for (const g of groups) {
-    groupTables[g.id].forEach((row, i) => {
+    realTables[g.id].forEach((row, i) => {
       groupPos[row.playerId] = { group: g.id, pos: i + 1 }
       statsOf[row.playerId] = row
     })
+  }
+
+  if (cafe) {
+    groupPos[cafe] = { group: groups.filter((g) => g.playerIds.includes(cafe)).map((g) => g.id).join(' e '), pos: 99 }
+    statsOf[cafe] = cafeRow
   }
 
   const cmpOverall = (a, b) =>
@@ -205,11 +262,11 @@ export function computeTournament(state) {
   let qualified = []
   let thirdsRanking = []
   if (groups.length) {
-    const top = (gid, n) => groupTables[gid].slice(0, n).map((r) => r.playerId)
-    if (format === 8 || format === 9) qualified = groups.flatMap((g) => top(g.id, 2))
+    const top = (gid, n) => realTables[gid].slice(0, n).map((r) => r.playerId)
+    if (format === 7 || format === 8 || format === 9) qualified = groups.flatMap((g) => top(g.id, 2))
     if (format === 10) qualified = groups.flatMap((g) => top(g.id, 3))
-    if (format === 12) {
-      const thirds = groups.map((g) => groupTables[g.id][2]?.playerId).filter(Boolean)
+    if (F.ko === 'quarters') {
+      const thirds = groups.map((g) => realTables[g.id][2]?.playerId).filter(Boolean)
       thirdsRanking = thirds.slice().sort(cmpOverall)
       qualified = [...groups.flatMap((g) => top(g.id, 2)), ...thirdsRanking.slice(0, 2)]
     }
@@ -220,10 +277,10 @@ export function computeTournament(state) {
 
   const eliminated = groups
     .flatMap((g) => g.playerIds)
-    .filter((id) => !qualifiedSet.has(id))
+    .filter((id, i, arr) => !qualifiedSet.has(id) && id !== cafe && arr.indexOf(id) === i)
     .sort((a, b) => compareStats(statsOf[a], statsOf[b]) || groupPos[a].pos - groupPos[b].pos || byName(a, b))
 
-  const pos = (gid, n) => (phase1Done ? groupTables[gid]?.[n - 1]?.playerId || null : null)
+  const pos = (gid, n) => (phase1Done ? realTables[gid]?.[n - 1]?.playerId || null : null)
 
   // ---------- Helper para jogos eliminatórios ----------
   function ko({ id, stage, title, subtitle, home, away, homeLabel, awayLabel }) {
@@ -285,7 +342,7 @@ export function computeTournament(state) {
     })
   }
 
-  if (format === 8) {
+  if (F.ko === 'semis') {
     ko({
       id: 'S1', stage: 'semi', title: 'Semifinal', subtitle: 'Semi 1',
       home: pos('A', 1), away: pos('B', 2), homeLabel: '1º Grupo A', awayLabel: '2º Grupo B',
@@ -296,7 +353,7 @@ export function computeTournament(state) {
     })
   }
 
-  if (format === 12) {
+  if (F.ko === 'quarters') {
     let qf = null
     if (phase1Done && overallSeeds.length === 8) {
       const s = overallSeeds
@@ -331,12 +388,14 @@ export function computeTournament(state) {
     })
   }
 
-  const n = eliminated.length
+  // Candidatos ao pato, do melhor para o pior. Com café com leite, ele é sempre o último.
+  const patoCandidates = cafe ? [...eliminated, cafe] : eliminated
+  const n = patoCandidates.length
   ko({
     id: 'PATO', stage: 'pato', title: 'Disputa do Pato', subtitle: 'Perdedor leva o pato',
-    home: phase1Done && n >= 2 ? eliminated[n - 2] : null,
-    away: phase1Done && n >= 2 ? eliminated[n - 1] : null,
-    homeLabel: 'Penúltimo geral', awayLabel: 'Último geral',
+    home: phase1Done && n >= 2 ? patoCandidates[n - 2] : null,
+    away: phase1Done && n >= 2 ? patoCandidates[n - 1] : cafe,
+    homeLabel: cafe ? 'Pior eliminado' : 'Penúltimo geral', awayLabel: cafe ? 'Café com leite' : 'Último geral',
   })
   ko({
     id: 'F', stage: 'final', title: 'Final', subtitle: 'Valendo a taça 🏆',
@@ -360,7 +419,11 @@ export function computeTournament(state) {
   return {
     matches,
     groupTables,
+    realTables,
     groupPos,
+    cafe,
+    cafeRow,
+    patoCandidates,
     phase1Done,
     qualified: qualifiedSet,
     thirdsRanking,
@@ -429,6 +492,7 @@ export function playerStatus(t, id) {
   if (t.champion === id) return { label: 'Campeão', tone: 'gold' }
   if (t.vice === id) return { label: 'Vice', tone: 'silver' }
   if (t.pato === id) return { label: 'Pato', tone: 'pato' }
+  if (t.cafe === id) return { label: 'Café com leite', tone: 'cafe' }
   if (!t.phase1Done) return { label: 'Fase de grupos', tone: 'neutral' }
   if (!t.qualified.has(id)) {
     const p = t.matches.find((m) => m.id === 'PATO')

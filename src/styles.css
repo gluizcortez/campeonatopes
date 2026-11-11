@@ -554,3 +554,14 @@ select option { background: var(--card-solid); }
 }
 @keyframes slideUp { from { transform: translateY(30px); opacity: 0; } }
 .topbar .brand { max-width: 300px; }
+
+/* ---------- Café com leite ---------- */
+.zone-cafe .pos-dot { background: rgba(180, 120, 70, 0.22); color: #e6b98a; font-size: 13px; }
+.zone-cafe td { color: #c9b29a; }
+.cafe-badge { font-size: 15px; }
+.gs-row.is-cafe { background: rgba(180, 120, 70, 0.14); border: 1px dashed rgba(230, 185, 138, 0.4); }
+.cafe-intro { display: flex; gap: 12px; align-items: center; margin-top: 10px; padding: 12px 14px; border-radius: 14px; background: rgba(180, 120, 70, 0.12); border: 1px solid rgba(230, 185, 138, 0.3); }
+.cafe-icon { font-size: 30px; }
+.seed-opt.cafe.selected { border-color: #e6b98a; background: rgba(180, 120, 70, 0.18); }
+.seed-opt.cafe .seed-badge { color: #e6b98a; }
+.s-cafe { background: rgba(180, 120, 70, 0.2); color: #e6b98a; }
