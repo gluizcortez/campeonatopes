@@ -262,7 +262,7 @@ export function computeTournament(state) {
     ko({
       id: 'S1', stage: 'semi', title: 'Semifinal', subtitle: 'Semi 1',
       home: () => winnersK()?.[0] ?? null, away: () => repescagem.winner,
-      homeLabel: 'Melhor vencedor do mata-mata', awayLabel: 'Líder da repescagem',
+      homeLabel: '1º melhor vencedor', awayLabel: 'Líder da repescagem',
     })
     ko({
       id: 'S2', stage: 'semi', title: 'Semifinal', subtitle: 'Semi 2',
@@ -308,7 +308,7 @@ export function computeTournament(state) {
 
   const n = eliminated.length
   ko({
-    id: 'PATO', stage: 'pato', title: 'Disputa do Pato', subtitle: 'Quem perder leva o pato 🦆',
+    id: 'PATO', stage: 'pato', title: 'Disputa do Pato', subtitle: 'Perdedor leva o pato',
     home: phase1Done && n >= 2 ? eliminated[n - 2] : null,
     away: phase1Done && n >= 2 ? eliminated[n - 1] : null,
     homeLabel: 'Penúltimo geral', awayLabel: 'Último geral',
@@ -415,6 +415,6 @@ export function playerStatus(t, id) {
   const repLost = t.repescagem?.done && t.repescagem.winner !== id && t.repescagem.table.some((r) => r.playerId === id)
   if (lostKO || repLost) return { label: 'Eliminado', tone: 'out' }
   const lostSecond = t.matches.some((m) => m.stage === 'second' && t.outcomes[m.id]?.loser === id)
-  if (lostSecond) return { label: 'Repescagem', tone: 'warn' }
+  if (lostSecond && t.repescagem?.winner !== id) return { label: 'Repescagem', tone: 'warn' }
   return { label: 'Vivo', tone: 'alive' }
 }

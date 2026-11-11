@@ -1,4 +1,5 @@
 import { useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import { TEAM_BY_ID } from '../data/teams.js'
 import { usePlayer } from '../store.jsx'
 
@@ -50,7 +51,8 @@ export function Modal({ open, onClose, title, children, wide }) {
     }
   }, [open, onClose])
   if (!open) return null
-  return (
+  // Portal no body: evita que containers com backdrop-filter "prendam" o position: fixed
+  return createPortal(
     <div className="modal-backdrop" onMouseDown={(e) => e.target === e.currentTarget && onClose?.()}>
       <div className={`modal ${wide ? 'modal-wide' : ''}`} role="dialog" aria-modal="true">
         <div className="modal-head">
@@ -59,7 +61,8 @@ export function Modal({ open, onClose, title, children, wide }) {
         </div>
         <div className="modal-body">{children}</div>
       </div>
-    </div>
+    </div>,
+    document.body,
   )
 }
 

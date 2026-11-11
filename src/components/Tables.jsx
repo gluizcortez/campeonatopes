@@ -25,8 +25,8 @@ export function GroupTable({ groupId, compact }) {
             <th title="Pontos">P</th>
             <th title="Jogos">J</th>
             <th title="Vitórias">V</th>
-            {!compact && <th title="Empates">E</th>}
-            {!compact && <th title="Derrotas">D</th>}
+            {!compact && <th className="hide-sm" title="Empates">E</th>}
+            {!compact && <th className="hide-sm" title="Derrotas">D</th>}
             {!compact && <th title="Gols pró">GP</th>}
             {!compact && <th title="Gols contra">GC</th>}
             <th title="Saldo de gols">SG</th>
@@ -41,14 +41,16 @@ export function GroupTable({ groupId, compact }) {
               <tr key={r.playerId} className={`zone-${zone} ${q ? 'qualified' : ''}`}>
                 <td className="pos"><span className="pos-dot">{i + 1}</span></td>
                 <td className="left">
-                  <PlayerTag id={r.playerId} size={18} showTeam={!compact} />
-                  {seeds.has(r.playerId) && <span className="seed-star" title="Cabeça de chave">★</span>}
+                  <div className="gt-player">
+                    <PlayerTag id={r.playerId} size={18} showTeam={!compact} />
+                    {seeds.has(r.playerId) && <span className="seed-star" title="Cabeça de chave">★</span>}
+                  </div>
                 </td>
                 <td className="pts">{r.pts}</td>
                 <td>{r.j}</td>
                 <td>{r.v}</td>
-                {!compact && <td>{r.e}</td>}
-                {!compact && <td>{r.d}</td>}
+                {!compact && <td className="hide-sm">{r.e}</td>}
+                {!compact && <td className="hide-sm">{r.d}</td>}
                 {!compact && <td>{r.gp}</td>}
                 {!compact && <td>{r.gc}</td>}
                 <td className={r.sg > 0 ? 'pos-num' : r.sg < 0 ? 'neg-num' : ''}>{r.sg > 0 ? `+${r.sg}` : r.sg}</td>
@@ -91,7 +93,7 @@ export function ThirdsTable() {
             <span className="mr-pos">{i + 1}º</span>
             <PlayerTag id={id} size={18} />
             <span className="mr-group">Gr. {t.groupPos[id]?.group}</span>
-            <span className="mr-stat">{row.pts} pts · {row.v} V · SG {row.sg}</span>
+            <span className="mr-stat">{row.pts} {row.pts === 1 ? 'pt' : 'pts'} · {row.v} V · SG {row.sg}</span>
           </div>
         )
       })}
@@ -110,7 +112,7 @@ export function RepescagemTable() {
         <div key={r.playerId} className={`mr-row ${i === 0 ? 'ok' : ''}`}>
           <span className="mr-pos">{i + 1}º</span>
           <PlayerTag id={r.playerId} size={18} />
-          <span className="mr-stat">{r.pts} pts · {r.j} J · {r.v} V · SG {r.sg}</span>
+          <span className="mr-stat">{r.pts} {r.pts === 1 ? 'pt' : 'pts'} · {r.j} J · {r.v} V · SG {r.sg}</span>
         </div>
       ))}
     </div>
@@ -131,7 +133,7 @@ export function PatoRanking() {
             <span className="mr-pos">{state.players.length - n + i + 1}º</span>
             <PlayerTag id={id} size={18} />
             <span className="mr-group">Gr. {t.groupPos[id]?.group}</span>
-            <span className="mr-stat">{r.pts} pts · {r.v} V · SG {r.sg}</span>
+            <span className="mr-stat">{r.pts} {r.pts === 1 ? 'pt' : 'pts'} · {r.v} V · SG {r.sg}</span>
             {danger && <span className="duck">🦆</span>}
           </div>
         )

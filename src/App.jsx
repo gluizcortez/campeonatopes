@@ -5,6 +5,8 @@ import { ResultModal } from './components/Match.jsx'
 import { BracketPage, Groups, Home, Matches, PatoPage, Players, ScorersPage, Settings } from './pages.jsx'
 import { FORMATS } from './logic/tournament.js'
 
+const PRIMARY = ['home', 'matches', 'groups', 'bracket']
+
 const TABS = [
   { id: 'home', label: 'Início', icon: '🏠' },
   { id: 'matches', label: 'Partidas', icon: '📅' },
@@ -25,6 +27,7 @@ export default function App() {
   const { state, tournament } = useStore()
   const [tab, setTab] = useState(readTab)
   const [openId, setOpenId] = useState(null)
+  const [moreOpen, setMoreOpen] = useState(false)
 
   useEffect(() => {
     const onHash = () => setTab(readTab())
@@ -32,9 +35,14 @@ export default function App() {
     return () => window.removeEventListener('hashchange', onHash)
   }, [])
 
+  useEffect(() => {
+    document.querySelector('.tab.active')?.scrollIntoView({ inline: 'center', block: 'nearest' })
+  }, [tab, state.status])
+
   const goTo = (id) => {
     window.location.hash = id
     setTab(id)
+    setMoreOpen(false)
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
@@ -81,6 +89,30 @@ export default function App() {
         {tab === 'players' && <Players {...props} />}
         {tab === 'settings' && <Settings {...props} />}
       </main>
+      <nav className="bottom-nav" aria-label="Navegação">
+        {TABS.filter((t) => PRIMARY.includes(t.id)).map((t) => (
+          <button key={t.id} className={`bn-item ${tab === t.id ? 'active' : ''}`} onClick={() => goTo(t.id)}>
+            <span className="bn-icon">{t.icon}</span>
+            <span className="bn-label">{t.label}</span>
+          </button>
+        ))}
+        <button className={`bn-item ${!PRIMARY.includes(tab) || moreOpen ? 'active' : ''}`} onClick={() => setMoreOpen((v) => !v)}>
+          <span className="bn-icon">{moreOpen ? '✕' : '☰'}</span>
+          <span className="bn-label">{PRIMARY.includes(tab) ? 'Mais' : TABS.find((t) => t.id === tab).label}</span>
+        </button>
+      </nav>
+      {moreOpen && (
+        <div className="more-sheet-backdrop" onClick={() => setMoreOpen(false)}>
+          <div className="more-sheet" onClick={(e) => e.stopPropagation()}>
+            {TABS.filter((t) => !PRIMARY.includes(t.id)).map((t) => (
+              <button key={t.id} className={`ms-item ${tab === t.id ? 'active' : ''}`} onClick={() => goTo(t.id)}>
+                <span className="ms-icon">{t.icon}</span>
+                {t.label}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
       {openMatch && <ResultModal key={openMatch.id} match={openMatch} onClose={() => setOpenId(null)} />}
     </div>
   )

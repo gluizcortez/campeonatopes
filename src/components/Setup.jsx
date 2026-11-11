@@ -49,6 +49,8 @@ function StepFormat() {
             className={`format-card ${state.format === f.size ? 'selected' : ''}`}
             onClick={() => update((s) => {
               s.format = f.size
+              // remove linhas vazias que sobraram de outro formato
+              s.players = s.players.filter((p, i) => i < f.size || p.name.trim() || p.team)
               s.seeds = s.seeds.slice(0, f.groups)
               s.groups = []
               s.groupMatchups = {}
@@ -343,7 +345,8 @@ export function Setup() {
   const canNext = [!!f, playersOk && namesUnique, seedsOk, groupsOk, true][step]
   const hint = [
     'Escolha um formato.',
-    !playersOk ? 'Preencha nome e seleção de todos.' : !namesUnique ? 'Há nomes repetidos.' : '',
+    f && state.players.length > f.size ? `Remova ${state.players.length - f.size} jogador(es) para ficar com ${f.size}.`
+      : !playersOk ? 'Preencha nome e seleção de todos.' : !namesUnique ? 'Há nomes repetidos.' : '',
     `Selecione ${f?.groups} cabeças de chave.`,
     'Complete todos os grupos.',
     '',

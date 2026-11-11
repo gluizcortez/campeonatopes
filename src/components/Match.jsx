@@ -260,7 +260,7 @@ export function ResultModal({ match, onClose }) {
           <div className="row-between">
             <div className="row">
               {!existing && state.liveMatchId !== match.id && (
-                <button className="btn ghost" onClick={setLive}>▶ Marcar como partida atual</button>
+                <button className="btn ghost" onClick={setLive}>▶ Jogar agora</button>
               )}
               {match.knockout && !existing && (
                 <button className="btn ghost" onClick={() => setEditing(true)}>✏️ Editar confronto</button>

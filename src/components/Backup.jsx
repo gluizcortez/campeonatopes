@@ -5,7 +5,7 @@ export function exportState(state) {
   const blob = new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' })
   const url = URL.createObjectURL(blob)
   const a = document.createElement('a')
-  const slug = (state.name || 'campeonato').toLowerCase().normalize('NFD').replace(/[^\w]+/g, '-')
+  const slug = (state.name || 'campeonato').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^\w]+/g, '-').replace(/^-|-$/g, '')
   a.href = url
   a.download = `${slug}-${new Date().toISOString().slice(0, 10)}.json`
   a.click()
