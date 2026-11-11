@@ -199,7 +199,7 @@ export function BracketPage({ open }) {
           </div>
         </Card>
       )}
-      {state.format !== 12 && (
+      {FORMATS[state.format].repescagem && (
         <Card title="Repescagem" icon="🔁">
           <p className="muted small" style={{ marginTop: 0 }}>Triangular entre os 3 perdedores do mata-mata. O líder vai à semifinal contra o melhor vencedor.</p>
           <RepescagemTable />

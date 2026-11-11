@@ -26,7 +26,7 @@ function playAll(state, seed = 1) {
   throw new Error('loop')
 }
 
-for (const format of [9, 10, 12]) {
+for (const format of [8, 9, 10, 12]) {
   test(`formato ${format} roda até o fim`, () => {
     for (let seed = 1; seed < 30; seed++) {
       const st = setup(format)
@@ -54,6 +54,7 @@ for (const format of [9, 10, 12]) {
 }
 
 test('contagem de jogos por formato', () => {
+  assert.equal(computeTournament(setup(8)).totalMatches, 12 + 2 + 1 + 1)
   assert.equal(computeTournament(setup(9)).totalMatches, 9 + 3 + 3 + 2 + 1 + 1)
   assert.equal(computeTournament(setup(10)).totalMatches, 10 + 3 + 3 + 2 + 1 + 1)
   assert.equal(computeTournament(setup(12)).totalMatches, 18 + 4 + 2 + 1 + 1)

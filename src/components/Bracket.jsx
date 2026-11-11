@@ -2,6 +2,7 @@ import { Fragment } from 'react'
 import { useStore } from '../store.jsx'
 import { PlayerTag } from './common.jsx'
 import { RepescagemTable } from './Tables.jsx'
+import { FORMATS } from '../logic/tournament.js'
 
 function BMatch({ m, onOpen }) {
   const { tournament: t } = useStore()
@@ -32,7 +33,9 @@ export function Bracket({ onOpen, compact }) {
   const final = by('final')[0]
   const champion = t.champion
 
-  const cols = state.format === 12
+  const cols = state.format === 8
+    ? [{ title: 'Semifinais', items: by('semi') }]
+    : state.format === 12
     ? [
         { title: 'Quartas', items: by('quarter') },
         { title: 'Semifinais', items: by('semi') },
@@ -46,7 +49,7 @@ export function Bracket({ onOpen, compact }) {
     <div className={`bracket ${compact ? 'compact' : ''}`}>
       {cols.map((c, ci) => (
         <Fragment key={c.title}>
-        {ci === 1 && state.format !== 12 && !compact && (
+        {ci === 1 && FORMATS[state.format].repescagem && !compact && (
           <div className="b-col b-rep">
             <div className="b-col-title">Repescagem 🔁</div>
             <div className="b-col-items">

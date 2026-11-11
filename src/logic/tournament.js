@@ -3,7 +3,20 @@
 export const GROUP_IDS = ['A', 'B', 'C']
 
 export const FORMATS = {
+  8: {
+    size: 8,
+    groups: 2,
+    perGroup: 4,
+    title: '8 participantes',
+    summary: '2 grupos de 4 · semifinal direto',
+    steps: [
+      'Fase de grupos: 2 grupos de 4, todos contra todos. Passam os 2 melhores.',
+      'Semifinais: 1º A × 2º B e 1º B × 2º A.',
+      'Final em jogo único 🏆',
+    ],
+  },
   9: {
+    repescagem: true,
     size: 9,
     groups: 3,
     perGroup: 3,
@@ -18,6 +31,7 @@ export const FORMATS = {
     ],
   },
   10: {
+    repescagem: true,
     size: 10,
     groups: 2,
     perGroup: 5,
@@ -192,7 +206,7 @@ export function computeTournament(state) {
   let thirdsRanking = []
   if (groups.length) {
     const top = (gid, n) => groupTables[gid].slice(0, n).map((r) => r.playerId)
-    if (format === 9) qualified = groups.flatMap((g) => top(g.id, 2))
+    if (format === 8 || format === 9) qualified = groups.flatMap((g) => top(g.id, 2))
     if (format === 10) qualified = groups.flatMap((g) => top(g.id, 3))
     if (format === 12) {
       const thirds = groups.map((g) => groupTables[g.id][2]?.playerId).filter(Boolean)
@@ -268,6 +282,17 @@ export function computeTournament(state) {
       id: 'S2', stage: 'semi', title: 'Semifinal', subtitle: 'Semi 2',
       home: () => winnersK()?.[1] ?? null, away: () => winnersK()?.[2] ?? null,
       homeLabel: '2º melhor vencedor', awayLabel: '3º melhor vencedor',
+    })
+  }
+
+  if (format === 8) {
+    ko({
+      id: 'S1', stage: 'semi', title: 'Semifinal', subtitle: 'Semi 1',
+      home: pos('A', 1), away: pos('B', 2), homeLabel: '1º Grupo A', awayLabel: '2º Grupo B',
+    })
+    ko({
+      id: 'S2', stage: 'semi', title: 'Semifinal', subtitle: 'Semi 2',
+      home: pos('B', 1), away: pos('A', 2), homeLabel: '1º Grupo B', awayLabel: '2º Grupo A',
     })
   }
 
