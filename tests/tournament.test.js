@@ -48,11 +48,18 @@ for (const format of [7, 8, 9, 10, 11, 12]) {
         const inReal = Object.values(t.realTables).filter((rows) => rows.some((r) => r.playerId === st.cafe)).length
         assert.equal(inReal, 1)
       }
-      // cada jogador do grupo de 10 joga 2 jogos
+      // no formato de 10, todos contra todos no grupo: 4 jogos cada, sem confronto repetido
       if (format === 10) {
         for (const p of st.players) {
           const n = st.groupMatches.filter((m) => m.homeId === p.id || m.awayId === p.id).length
-          assert.equal(n, 2)
+          assert.equal(n, 4)
+        }
+        const keys = st.groupMatches.map((m) => [m.homeId, m.awayId].sort().join('|'))
+        assert.equal(new Set(keys).size, 20)
+        // ninguém joga duas vezes na mesma rodada
+        for (const r of new Set(st.groupMatches.map((m) => m.round))) {
+          const ids = st.groupMatches.filter((m) => m.round === r).flatMap((m) => [m.homeId, m.awayId])
+          assert.equal(new Set(ids).size, ids.length)
         }
       }
       if (format === 12 || format === 11) {
@@ -71,7 +78,7 @@ test('contagem de jogos por formato', () => {
   assert.equal(computeTournament(setup(7)).totalMatches, 12 + 2 + 1 + 1)
   assert.equal(computeTournament(setup(11)).totalMatches, 18 + 4 + 2 + 1 + 1)
   assert.equal(computeTournament(setup(9)).totalMatches, 9 + 3 + 3 + 2 + 1 + 1)
-  assert.equal(computeTournament(setup(10)).totalMatches, 10 + 3 + 3 + 2 + 1 + 1)
+  assert.equal(computeTournament(setup(10)).totalMatches, 20 + 3 + 3 + 2 + 1 + 1)
   assert.equal(computeTournament(setup(12)).totalMatches, 18 + 4 + 2 + 1 + 1)
 })
 

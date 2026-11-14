@@ -72,8 +72,8 @@ function check(st, t) {
   const tables = {}
   for (const g of st.groups) {
     const gm = st.groupMatches.filter((m) => m.groupId === g.id)
-    // todos contra todos no grupo (exceto 10 jogadores: 2 jogos cada)
-    const expected = st.format === 10 ? 5 : (g.playerIds.length * (g.playerIds.length - 1)) / 2
+    // todos contra todos no grupo
+    const expected = (g.playerIds.length * (g.playerIds.length - 1)) / 2
     assert.equal(gm.length, expected, `grupo ${g.id} quantidade de jogos`)
     const rows = table(g.playerIds, gm, st.results).sort((a, b) => cmp(a, b) || name(a.id).localeCompare(name(b.id)))
     tables[g.id] = rows

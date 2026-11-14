@@ -55,9 +55,9 @@ export const FORMATS = {
     groups: 2,
     perGroup: 5,
     title: '10 participantes',
-    summary: '2 grupos de 5 · 2 jogos cada · passam 3',
+    summary: '2 grupos de 5 · passam 3 por grupo',
     steps: [
-      'Fase de grupos: 2 grupos de 5. Cada um joga contra 2 adversários do grupo (confrontos definidos antes).',
+      'Fase de grupos: 2 grupos de 5, todos contra todos (4 jogos cada).',
       'Passam os 3 melhores de cada grupo.',
       'Mata-mata: 3 jogos (1º A × 3º B, 1º B × 3º A, 2º A × 2º B).',
       'Repescagem: os 3 derrotados jogam um triangular. Passa o líder.',
@@ -111,8 +111,8 @@ export const STAGES = {
 export function defaultGroupPairs(size) {
   if (size === 3) return [[0, 1], [2, 0], [1, 2]]
   if (size === 4) return [[0, 3], [1, 2], [0, 2], [3, 1], [0, 1], [2, 3]]
-  // 5 jogadores, 2 jogos cada (ciclo): 1×2, 3×4, 5×1, 2×3, 4×5
-  if (size === 5) return [[0, 1], [2, 3], [4, 0], [1, 2], [3, 4]]
+  // 5 jogadores, todos contra todos: 5 rodadas de 2 jogos, um folga por rodada
+  if (size === 5) return [[0, 1], [2, 3], [4, 0], [1, 2], [3, 4], [0, 2], [1, 3], [2, 4], [3, 0], [4, 1]]
   return []
 }
 

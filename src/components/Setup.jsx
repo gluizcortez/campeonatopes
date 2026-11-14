@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useStore, uid, NAME_MAX } from '../store.jsx'
 import { TEAMS, TEAM_BY_ID } from '../data/teams.js'
-import { FORMATS, GROUP_IDS, buildGroupMatches, defaultGroupMatchups } from '../logic/tournament.js'
+import { FORMATS, GROUP_IDS, buildGroupMatches } from '../logic/tournament.js'
 import { Flag, Modal, PlayerTag } from './common.jsx'
 import { FormatInfo } from './Tables.jsx'
 import { ImportButton } from './Backup.jsx'
@@ -277,67 +277,6 @@ function StepGroups() {
         ))}
       </div>
       {free.length === 0 && <button className="btn ghost small" onClick={clear}>Limpar grupos</button>}
-      {state.format === 10 && free.length === 0 && <Matchups groups={groups} />}
-    </div>
-  )
-}
-
-function matchupsValid(groups, matchups) {
-  return groups.every((g) => {
-    const list = matchups[g.id] || defaultGroupMatchups(g.playerIds)
-    const count = Object.fromEntries(g.playerIds.map((id) => [id, 0]))
-    const seen = new Set()
-    for (const [h, a] of list) {
-      if (!h || !a || h === a) return false
-      const k = [h, a].sort().join('|')
-      if (seen.has(k)) return false
-      seen.add(k)
-      count[h]++
-      count[a]++
-    }
-    return Object.values(count).every((c) => c === 2)
-  })
-}
-
-function Matchups({ groups }) {
-  const { state, update } = useStore()
-  const name = (id) => state.players.find((p) => p.id === id)?.name
-  const set = (gid, i, side, val) => update((s) => {
-    const g = s.groups.find((x) => x.id === gid)
-    const list = s.groupMatchups[gid] || defaultGroupMatchups(g.playerIds)
-    list[i][side] = val
-    s.groupMatchups[gid] = list
-  })
-  const valid = matchupsValid(groups, state.groupMatchups)
-  return (
-    <div className="info-box">
-      <div className="info-title">Confrontos da fase de grupos</div>
-      <p className="muted small" style={{ marginTop: 0 }}>
-        No formato de 10, cada jogador faz 2 jogos dentro do grupo. Já sugerimos uma tabela em ciclo; ajuste se vocês definiram outros confrontos.
-      </p>
-      <div className="matchups">
-        {groups.map((g) => {
-          const list = state.groupMatchups[g.id] || defaultGroupMatchups(g.playerIds)
-          return (
-            <div key={g.id} className="mu-group">
-              <div className="gs-head"><span className="group-badge">{g.id}</span> Grupo {g.id}</div>
-              {list.map(([h, a], i) => (
-                <div className="mu-row" key={i}>
-                  <span className="muted small">J{i + 1}</span>
-                  <select value={h} onChange={(e) => set(g.id, i, 0, e.target.value)}>
-                    {g.playerIds.map((id) => <option key={id} value={id}>{name(id)}</option>)}
-                  </select>
-                  <span className="muted">×</span>
-                  <select value={a} onChange={(e) => set(g.id, i, 1, e.target.value)}>
-                    {g.playerIds.map((id) => <option key={id} value={id}>{name(id)}</option>)}
-                  </select>
-                </div>
-              ))}
-            </div>
-          )
-        })}
-      </div>
-      {!valid && <div className="warn small">Cada jogador precisa ter exatamente 2 jogos, sem confronto repetido.</div>}
     </div>
   )
 }
@@ -345,7 +284,7 @@ function Matchups({ groups }) {
 function StepReview() {
   const { state } = useStore()
   const groups = state.groups
-  const total = buildGroupMatches(groups, state.format === 10 ? state.groupMatchups : null, state.cafe).length
+  const total = buildGroupMatches(groups, null, state.cafe).length
   return (
     <div className="setup-step">
       <div className="review-hero">
@@ -380,7 +319,6 @@ export function Setup() {
   const namesUnique = playersOk && new Set(state.players.map((p) => p.name.trim().toLowerCase())).size === f.size
   const seedsOk = f && state.seeds.length === f.groups && (!f.cafe || (state.cafe && !state.seeds.includes(state.cafe)))
   const groupsOk = f && state.groups.length === f.groups && state.groups.every((g) => g.playerIds.length === f.perGroup)
-    && (state.format !== 10 || matchupsValid(state.groups, state.groupMatchups))
 
   const canNext = [!!f, playersOk && namesUnique, seedsOk, groupsOk, true][step]
   const hint = [
@@ -400,7 +338,7 @@ export function Setup() {
   }
   const doStart = () => update((s) => {
     s.players.forEach((p) => { p.name = p.name.trim() })
-    s.groupMatches = buildGroupMatches(s.groups, s.format === 10 ? s.groupMatchups : null, FORMATS[s.format].cafe ? s.cafe : null)
+    s.groupMatches = buildGroupMatches(s.groups, null, FORMATS[s.format].cafe ? s.cafe : null)
     s.results = {}
     s.overrides = {}
     s.status = 'running'
