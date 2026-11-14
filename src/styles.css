@@ -541,3 +541,13 @@ select option { background: var(--card-solid); }
 .setup-step > .btn { align-self: flex-start; }
 .waiting-note { margin-top: 12px; padding-top: 10px; border-top: 1px dashed var(--line-2); }
 .ready-card .match-card { background: #1a2742; }
+
+/* ---------- Resumo em PNG ---------- */
+.summary-cta { display: flex; align-items: center; justify-content: space-between; gap: 14px; background: var(--card); border: 1px solid rgba(34, 197, 94, 0.35); border-radius: var(--radius); padding: 14px 18px; }
+.summary-cta .btn { white-space: nowrap; }
+.summary-preview { display: flex; justify-content: center; align-items: center; min-height: 200px; background: var(--bg); border-radius: var(--radius-sm); overflow: hidden; }
+.summary-preview img { display: block; width: 100%; height: auto; }
+@media (max-width: 640px) {
+  .summary-cta { flex-direction: column; align-items: stretch; text-align: center; }
+}
+.summary-actions { margin: 0 0 14px; }

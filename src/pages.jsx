@@ -6,6 +6,7 @@ import { GroupTable, Legend, PatoRanking, RepescagemTable, Scorers, ThirdsTable,
 import { Bracket } from './components/Bracket.jsx'
 import { TeamPicker } from './components/Setup.jsx'
 import { ImportButton, exportState } from './components/Backup.jsx'
+import { ExportSummaryButton } from './components/ExportSummary.jsx'
 import { FORMATS, STAGES, computePlayerStats, computeScorers, playerStatus } from './logic/tournament.js'
 import { TEAM_BY_ID } from './data/teams.js'
 
@@ -61,6 +62,16 @@ export function Home({ open, goTo }) {
       </div>
 
       <Podium />
+
+      {t.finished && (
+        <div className="summary-cta">
+          <div>
+            <b>Guarde a história desse campeonato</b>
+            <div className="muted small">Gere uma imagem com campeão, vice, pato, final, artilharia e as estatísticas para salvar ou mandar no grupo.</div>
+          </div>
+          <ExportSummaryButton />
+        </div>
+      )}
 
       {!t.finished && (
         <Card
