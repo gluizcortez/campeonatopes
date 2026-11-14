@@ -53,7 +53,7 @@ function table(ids, matches, results) {
   }
   return Object.values(row)
 }
-const cmp = (a, b) => b.pts - a.pts || b.v - a.v || (b.gp - b.gc) - (a.gp - a.gc) || b.gp - a.gp
+const cmp = (a, b) => b.pts - a.pts || (b.gp - b.gc) - (a.gp - a.gc) || b.gp - a.gp || b.v - a.v
 
 function check(st, t) {
   const f = FORMATS[st.format]

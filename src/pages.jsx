@@ -301,7 +301,7 @@ export function PatoPage({ open }) {
       <Card title="Jogo do Pato" icon="🦆"><MatchCard match={m} onOpen={open} /></Card>
       <Card title="Ranking dos eliminados" icon="📉">
         <p className="muted small" style={{ marginTop: 0 }}>
-          Ordenado por pontos, vitórias, saldo e gols pró. Os 2 últimos (🦆) vão para a disputa.
+          Ordenado por pontos, saldo, gols pró e vitórias. Os 2 últimos (🦆) vão para a disputa.
         </p>
         <PatoRanking />
       </Card>

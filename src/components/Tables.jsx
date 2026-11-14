@@ -85,7 +85,7 @@ export function Legend() {
       {FORMATS[state.format].cafe && <span>☕ Café com leite (conta só no grupo em que foi melhor)</span>}
       <span><i className="lg out" /> Fora (briga do pato)</span>
       <span>★ Cabeça de chave</span>
-      <span className="muted">Desempate: pontos, vitórias, saldo, gols pró</span>
+      <span className="muted">Desempate: pontos, saldo, gols pró, vitórias</span>
     </div>
   )
 }

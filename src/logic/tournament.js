@@ -185,9 +185,9 @@ function applyResult(row, gf, ga) {
   else { row.d++; row.form.push('D') }
 }
 
-// Critério: pontos, vitórias, saldo de gols, gols pró.
+// Critério: pontos, saldo de gols, gols pró, vitórias.
 export function compareStats(a, b) {
-  return b.pts - a.pts || b.v - a.v || b.sg - a.sg || b.gp - a.gp
+  return b.pts - a.pts || b.sg - a.sg || b.gp - a.gp || b.v - a.v
 }
 
 export function computeTable(playerIds, matches, results, tiebreak) {
