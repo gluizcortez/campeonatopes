@@ -14,6 +14,7 @@ export const TEAMS = [
   { id: 'equador', name: 'Equador', code: 'ec', color: '#facc15' },
   { id: 'holanda', name: 'Holanda', code: 'nl', color: '#f97316' },
   { id: 'italia', name: 'Itália', code: 'it', color: '#2563eb' },
+  { id: 'japao', name: 'Japão', code: 'jp', color: '#1e40af' },
   { id: 'marrocos', name: 'Marrocos', code: 'ma', color: '#b91c1c' },
   { id: 'nigeria', name: 'Nigéria', code: 'ng', color: '#16a34a' },
   { id: 'noruega', name: 'Noruega', code: 'no', color: '#dc2626' },
