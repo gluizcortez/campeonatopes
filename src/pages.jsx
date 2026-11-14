@@ -250,16 +250,18 @@ export function ScorersPage() {
         </Card>
         <div className="stack">
           <Card title="Melhor ataque" icon="🔥" action={<span className="muted small">média por jogo</span>}>
-            <RankList rows={attack.slice(0, 5)} value={(r) => `${r.gp} gols · ${(r.gp / r.j).toFixed(1)}/jogo`} />
+            <RankList rows={attack.slice(0, 5)} value={(r) => `${avg(r.gp, r.j)} gols por jogo (${r.gp} em ${r.j} ${r.j === 1 ? 'jogo' : 'jogos'})`} />
           </Card>
           <Card title="Melhor defesa" icon="🧱" action={<span className="muted small">média por jogo</span>}>
-            <RankList rows={defense.slice(0, 5)} value={(r) => `${r.gc} sofridos · ${(r.gc / r.j).toFixed(1)}/jogo`} />
+            <RankList rows={defense.slice(0, 5)} value={(r) => `${avg(r.gc, r.j)} sofridos por jogo (${r.gc} em ${r.j} ${r.j === 1 ? 'jogo' : 'jogos'})`} />
           </Card>
         </div>
       </div>
     </div>
   )
 }
+
+const avg = (n, j) => (n / j).toFixed(1).replace('.', ',')
 
 function RankList({ rows, value }) {
   if (!rows.length) return <div className="muted small">Sem jogos ainda.</div>
