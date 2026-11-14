@@ -20,6 +20,7 @@ export const TEAMS = [
   { id: 'noruega', name: 'Noruega', code: 'no', color: '#dc2626' },
   { id: 'polonia', name: 'Polônia', code: 'pl', color: '#f43f5e' },
   { id: 'senegal', name: 'Senegal', code: 'sn', color: '#16a34a' },
+  { id: 'suecia', name: 'Suécia', code: 'se', color: '#facc15' },
   { id: 'suica', name: 'Suíça', code: 'ch', color: '#dc2626' },
   { id: 'turquia', name: 'Turquia', code: 'tr', color: '#dc2626' },
   { id: 'uruguai', name: 'Uruguai', code: 'uy', color: '#60a5fa' },
